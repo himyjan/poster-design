@@ -1,4 +1,13 @@
 /*
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ * Copyright (C) 2026 palxiao https://xpai.design
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ */
+/*
  * @Author: ShawnPhang
  * @Date: 2022-02-22 15:06:14
  * @Description: 设置元素时根据类型处理
@@ -32,6 +41,7 @@ export default async function(type: string, item: TCommonItemData, data: Record<
   }
   if (type === 'mask') {
     setting.mask = item.value.url
+    setting.isContainer = true
   }
   if (type === 'svg') {
     setting = JSON.parse(JSON.stringify(wSvgSetting))

@@ -14,12 +14,10 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, nextTick, withDefaults } from 'vue'
+import { withDefaults } from 'vue'
 import { ElUpload, UploadRequestOptions } from 'element-plus'
-// import Qiniu from '@/common/methods/QiNiu'
 import api from '@/api'
 import { getImage } from '@/common/methods/getImgDetail'
-import _config from '@/config'
 import useNotification from '@/common/methods/notification'
 
 type TModelData = {
@@ -33,7 +31,7 @@ export type TUploadDoneData = {
   url: string
 }
 
-type TQiNiuUploadReturn = { hash: string; key: string }
+type TUploadResult = { key: string; url: string }
 
 type TProps = {
   modelValue?: TModelData
@@ -62,17 +60,7 @@ let uploadList: File[] = [] // 上传队列
 let index: number = 0 // 当前上传的脚标
 let count: number = 0 // 当前上传总数
 
-let tempSimpleRes: TQiNiuUploadReturn | null // 单个文件上传时返回
-
-// onMounted(async () => {
-//   await nextTick()
-//   setTimeout(() => {
-//     // 加载七牛上传插件
-//     const link_element = document.createElement('script')
-//     link_element.setAttribute('src', _config.QINIUYUN_PLUGIN)
-//     document.head.appendChild(link_element)
-//   }, 1000)
-// })
+let tempSimpleRes: TUploadResult | null // 单个文件上传时返回
 
 const upload = async ({ file }: UploadRequestOptions) => {
   if (props.hold) {
@@ -113,7 +101,7 @@ const uploadQueue = async () => {
   }
 }
 
-const qiNiuUpload = async (file: File): Promise<null | TQiNiuUploadReturn> => {
+const qiNiuUpload = async (file: File): Promise<null | TUploadResult> => {
   updatePercent(0)
   return new Promise(async (resolve) => {
     if (props.hold) {
@@ -123,9 +111,6 @@ const qiNiuUpload = async (file: File): Promise<null | TQiNiuUploadReturn> => {
       const result = await api.material.upload({ file }, (up: any, dp: any) => {
         console.log(up, dp)
       })
-      // const result = await Qiniu.upload(file, props.options, (res: Type.Object) => {
-      //   updatePercent(res.total.percent)
-      // })
       resolve(result)
     }
   })

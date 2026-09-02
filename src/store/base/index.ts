@@ -3,7 +3,7 @@
  * @Date: 2024-03-17 15:00:00
  * @Description: Base全局状态管理
  * @LastEditors: ShawnPhang <https://m.palxp.cn>
- * @LastEditTime: 2024-04-08 17:00:12
+ * @LastEditTime: 2026-09-02 12:49:23
  */
 
 import { Store, defineStore } from 'pinia'
@@ -28,7 +28,7 @@ type TUserAction = {
 const useBaseStore = defineStore<'base', TStoreBaseState, {}, TUserAction>('base', {
   state: () => ({
     loading: null,
-    watermark: ['迅排设计', 'poster-design'],
+    watermark: [],
     fonts: [], // 缓存字体列表
   }),
   actions: {

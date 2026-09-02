@@ -1,4 +1,12 @@
 <!--
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ * Copyright (C) 2026 palxiao https://xpai.design
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
  * @Author: ShawnPhang
  * @Date: 2022-01-27 11:05:48
  * @Description:  
@@ -13,9 +21,9 @@
         <el-dropdown-menu>
           <el-dropdown-item
             v-for="type in state.materialCates" :key="type.id"
-            @click="action('change', type, type.id)"
+            @click="action('change', type, type.name)"
           >
-            <span :class="['cate__text', { 'cate--select': + state.currentIndex === type.id }]">{{ type.name }}</span>
+            <span :class="['cate__text', { 'cate--select': state.currentIndex === type.name }]">{{ type.name }}</span>
           </el-dropdown-item>
         </el-dropdown-menu>
       </template>
@@ -50,7 +58,7 @@ type TMaterialCatesData = {id: string | number, name: string}
 type TState = {
   searchValue: string
   materialCates: TMaterialCatesData[]
-  currentIndex: number | string
+  currentIndex: string
 }
 
 const props = defineProps<TProps>()
@@ -61,18 +69,15 @@ const route = useRoute()
 const state = reactive<TState>({
   searchValue: '',
   materialCates: [],
-  currentIndex: 1,
+  currentIndex: '',
 })
 
 if (props.type != 'none') {
-  state.materialCates = [{ id: 0, name: '示例模板' }]
-  // api.home.getCategories({ type: 1 }).then((list: any) => {
-  //   list.unshift({ id: 0, name: '全部' })
-  //   state.materialCates = list
-  //   const { cate } = route.query
-  //   cate && (state.currentIndex = cate as string)
-  //   cate && action('change', state.materialCates[Number(cate)], Number(cate))
-  // })
+  state.materialCates = [{ id: 0, name: '全部模板' }]
+  api.home.getTemplateCategories(0).then((res: any) => {
+    const list = Array.isArray(res?.list) ? res.list : []
+    state.materialCates = state.materialCates.concat(list)
+  })
 }
 
 watch(
@@ -82,7 +87,7 @@ watch(
   },
 )
 
-function action(fn: 'change', type: TMaterialCatesData, currentIndex: number | string) {
+function action(fn: 'change', type: TMaterialCatesData, currentIndex: string) {
   currentIndex && (state.currentIndex = currentIndex)
   emit(fn, type)
 }

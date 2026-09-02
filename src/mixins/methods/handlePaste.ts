@@ -13,8 +13,6 @@
 
 // import store from '@/store'
 import api from '@/api'
-import Qiniu from '@/common/methods/QiNiu'
-import _config from '@/config'
 import { getImage } from '@/common/methods/getImgDetail'
 // import wImage from '@/components/modules/widgets/wImage/wImage.vue'
 import wImageSetting from '@/components/modules/widgets/wImage/wImageSetting'
@@ -64,14 +62,11 @@ export default (pasteImageFile?: any) => {
   })
 }
 async function uploadParseImage(file: File, { controlStore, pageStore, widgetStore }: any) {
-  // 上传图片
+  // 上传图片（后端上传成功后自动记录到"我的上传"，无需再调用添加接口）
   const resp = await api.material.upload({ file }, (up: any, dp: any) => {
     console.log(up, dp)
   })
   const { width, height } = await getImage(file)
-  try {
-    await api.material.addMyPhoto({ ...resp, width, height })
-  } catch (error) {}
   // 刷新用户列表
   eventBus.emit('refreshUserImages')
   // 添加图片到画布中

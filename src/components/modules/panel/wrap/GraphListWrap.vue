@@ -1,4 +1,12 @@
 <!--
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ * Copyright (C) 2026 palxiao https://xpai.design
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
  * @Author: ShawnPhang <https://m.palxp.cn>
  * @Date: 2021-08-27 15:16:07
  * @Description: 素材列表
@@ -105,12 +113,8 @@ const pageOptions = { page: 0, pageSize: 20 }
 
 onMounted(async () => {
   if (state.types.length <= 0) {
-    // const types = await api.material.getKinds({ type: 2 })
-    state.types = [
-      { cate: 'png', name: '贴纸，图片类型' },
-      { cate: 'svg', name: 'SVG矢量元素，可编辑' },
-      { cate: 'mask', name: '容器Mask，图形遮罩' },
-    ]
+    const categoryRes: any = await api.material.getAssetCategories('materials')
+    state.types = Array.isArray(categoryRes?.list) ? categoryRes.list : []
     for (const iterator of state.types) {
       const { list } = await api.material.getList({
         cate: iterator.cate,
@@ -149,15 +153,17 @@ const load = async (init: boolean = false) => {
   }
   state.loading = true
   pageOptions.page += 1
-  const list = await api.material.getList({
-    ...{ cate: state.currentCategory?.id || state.currentCategory?.cate, search: state.searchKeyword, ...pageOptions },
+  const result = await api.material.getList({
+    ...{ cate: state.currentCategory?.cate || state.currentCategory?.id, search: state.searchKeyword, ...pageOptions },
   })
+  const list = result?.list || []
   if (init) {
-    state.list = list?.list
+    state.list = list
   } else {
-    state.list = state.list.concat(list?.list)
+    state.list = state.list.concat(list)
   }
-  list?.list.length <= 0 && (state.loadDone = true)
+  const total = Number(result?.total)
+  if (list.length === 0 || (Number.isFinite(total) && state.list.length >= total) || list.length < pageOptions.pageSize) state.loadDone = true
   setTimeout(() => {
     state.loading = false
   }, 100)
@@ -197,7 +203,8 @@ async function selectItem(item: TGetListData) {
   // store.commit('setShowMoveable', false) // 清理掉上一次的选择
   controlStore.setShowMoveable(false) // 清理掉上一次的选择
 
-  let setting = item.type === 'svg' ? JSON.parse(JSON.stringify(wSvgSetting)) : JSON.parse(JSON.stringify(wImageSetting))
+  const assetType = item.type === 'png' ? 'image' : item.type
+  let setting = assetType === 'svg' ? JSON.parse(JSON.stringify(wSvgSetting)) : JSON.parse(JSON.stringify(wImageSetting))
   const img = await setImageData(item)
 
   setting.width = img.width
@@ -206,7 +213,7 @@ async function selectItem(item: TGetListData) {
   setting.left = pW / 2 - img.width / 2
   setting.top = pH / 2 - img.height / 2
   setting.imgUrl = item.url
-  if (item.type === 'svg') {
+  if (assetType === 'svg') {
     setting.svgUrl = item.url
     const models = JSON.parse(item.model)
     for (const key in models) {
@@ -215,8 +222,9 @@ async function selectItem(item: TGetListData) {
       }
     }
   }
-  if (item.type === 'mask') {
+  if (assetType === 'mask') {
     setting.mask = item.url
+    setting.isContainer = true
   }
   widgetStore.addWidget(setting)
   // store.dispatch('addWidget', setting)
@@ -227,7 +235,7 @@ async function dragStart(e: MouseEvent, item: TGetListData) {
   const img = await setImageData({ width, height, url: thumb || url })
   dragHelper.start(e, img.canvasWidth)
 
-  widgetStore.setSelectItem({ data: { value: item }, type: item.type })
+  widgetStore.setSelectItem({ data: { value: item }, type: item.type === 'png' ? 'image' : item.type })
   // store.commit('selectItem', { data: { value: item }, type: item.type })
 }
 </script>

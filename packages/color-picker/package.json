@@ -4,7 +4,7 @@
   "description": "TODO",
   "author": "ShawnPhang <palxiao@vip.qq.com>",
   "homepage": "https://fe-doc.palxp.cn/#/color-picker",
-  "license": "ISC",
+  "license": "AGPL-3.0",
   "main": "index.ts",
   "module": "index.ts",
   "types": "index.d.ts",

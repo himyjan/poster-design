@@ -4,16 +4,24 @@
  * @Description: 裁剪组件
  * @LastEditors: ShawnPhang <https://m.palxp.cn>
  * @Date: 2024-03-03 19:00:00
+ *
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ * Copyright (C) 2026 palxiao https://xpai.design
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
 -->
 <template>
-  <el-dialog v-model="state.show" title="AI 抠图（模拟演示）" align-center width="650" @close="handleClose">
+  <el-dialog v-model="state.show" title="AI 抠图" align-center width="650" @close="handleClose">
     <uploader v-if="!state.rawImage" :hold="true" :drag="true" :multiple="true" class="uploader" @load="handleUploaderLoad">
       <div class="uploader__box">
         <upload-filled style="width: 64px; height: 64px" />
         <!-- <div class="el-upload__text">在此拖入或选择<em>上传图片</em></div> -->
-        <div class="el-upload__text">自动抠图目前依赖后端服务，需自行部署</div>
+        <div class="el-upload__text">自动抠图在浏览器本地完成，无需后端服务</div>
       </div>
-      <div class="el-upload__tip el-upload__text"><em>体验前端效果演示以及修补编辑器，任意上传一张图片即可触发</em></div>
+      <div class="el-upload__tip el-upload__text"><em>首次使用需下载约 4.4MB 本地模型，之后浏览器会缓存复用</em></div>
     </uploader>
     <el-progress v-if="!state.cutImage && state.progressText" :percentage="state.progress">
       <el-button text>
@@ -105,10 +113,7 @@ defineExpose({
 const handleUploaderLoad = (file: File) => {
   selectImageFile(state as TImageCutoutState, raw, file, (result, name) => {
     fileName = name
-    // TODO: 模拟演示
-    // const resultImage = 'https://pic.imgdb.cn/item/6522253ec458853aefb0b013.webp' // URL.createObjectURL(result)
-    const resultImage = 'https://s2.loli.net/2024/08/16/fSxD9wlpiu3IKJv.png'
-    state.rawImage && (state.cutImage = resultImage)
+    state.rawImage && (state.cutImage = result)
     requestAnimationFrame(run)
   })
 }

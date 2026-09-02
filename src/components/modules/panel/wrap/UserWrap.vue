@@ -15,7 +15,6 @@
       <uploader v-model="state.percent" class="upload" @done="uploadDone">
         <el-button class="upload-btn" plain><i class="iconfont icon-upload" /> 上传图片</el-button>
       </uploader>
-      <el-button disabled class="upload-btn upload-psd" plain type="primary" @click="openPSD">导入 PSD</el-button>
       <div style="margin: 1rem; height: 100vh">
         <photo-list ref="imgListRef" :edit="state.editOptions.photo" :isDone="state.isDone" :listData="state.imgList" @load="load" @drag="dragStart" @select="selectImg" />
       </div>
@@ -189,9 +188,7 @@ const deleteImg = async ({ i, item }: controlImgParam) => {
   if (!isPass) {
     return false
   }
-  const arr = item.url.split('/')
-  let key = arr.splice(3, arr.length - 1).join('/')
-  api.material.deleteMyPhoto({ id: item.id, key })
+  api.material.deleteMyPhoto({ id: item.id })
   if (!imgListRef.value) return
   imgListRef.value.delItem(i) // 通知标记
 }
@@ -249,10 +246,6 @@ const selectDesign = async (item: IGetTempListData) => {
   window.open(`${window.location.protocol + '//' + window.location.host}/home?id=${id}`)
 }
 
-const openPSD = () => {
-  window.open(router.resolve('/psd').href, '_blank')
-}
-
 eventBus.on('refreshUserImages', () => {
   state.imgList = []
   load(true)
@@ -267,7 +260,6 @@ defineExpose({
   deleteImg,
   dragStart,
   tabChange,
-  openPSD,
 })
 </script>
 
@@ -293,10 +285,6 @@ defineExpose({
   &-btn {
     width: 170px;
     font-size: 14px;
-  }
-  &-psd {
-    width: 114px;
-    margin-left: 10px;
   }
 }
 .wrap {

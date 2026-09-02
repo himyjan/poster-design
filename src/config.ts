@@ -17,13 +17,12 @@ export default {
   VERSION: version,
   APP_NAME: '迅排设计',
   COPYRIGHT: 'ShawnPhang - Design.pPalxp.cn',
-  API_URL: isDev ? 'http://localhost:7001' : '', // 后端地址
-  SCREEN_URL: isDev ? 'http://localhost:7001' : '', // 截图服务地址
-  IMG_URL: 'https://store.palxp.cn/', // 七牛云资源地址
+  // 后端地址：优先读构建时的 VITE_API_URL 环境变量；生产默认空串（同源部署，由 Nginx 等反代 /api、/design、/static 到后端）
+  API_URL: prefix.VITE_API_URL || (isDev ? 'http://localhost:7001' : ''),
+  SCREEN_URL: prefix.VITE_API_URL || (isDev ? 'http://localhost:7001' : ''), // 截图服务地址
   // ICONFONT_URL: '//at.alicdn.com/t/font_3223711_74mlzj4jdue.css',
   ICONFONT_URL: '//at.alicdn.com/t/font_2717063_ypy8vprc3b.css?display=swap',
   ICONFONT_EXTRA: '//at.alicdn.com/t/c/font_3228074_xojoer6zhp.css',
-  QINIUYUN_PLUGIN: 'https://lf26-cdn-tos.bytecdntp.com/cdn/expire-1-M/qiniu-js/2.5.5/qiniu.min.js',
   supportSubFont: false, // 是否开启服务端字体压缩
 }
 

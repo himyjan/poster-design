@@ -1,9 +1,17 @@
 <!--
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ * Copyright (C) 2026 palxiao https://xpai.design
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
  * @Author: ShawnPhang
  * @Date: 2022-07-12 11:26:53
  * @Description: 上传用户模板
  * @LastEditors: ShawnPhang <https://m.palxp.cn>
- * @LastEditTime: 2024-08-17 10:51:11
+ * @LastEditTime: 2026-09-01 20:18:48
 -->
 <template>
   <el-button v-show="isDone" type="primary" plain @click="prepare"><b>上传模板</b></el-button>
@@ -13,13 +21,12 @@
 
 <script lang="ts" setup>
 import api from '@/api'
+import * as adminApi from '@/api/admin'
 import { reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import useNotification from '@/common/methods/notification'
 import SaveImage from '@/components/business/save-download/CreateCover.vue'
 import { useFontStore } from '@/common/methods/fonts'
-import _config from '@/config'
-import github from '@/api/github'
 // import { useSetupMapGetters } from '@/common/hooks/mapGetters'
 import { useControlStore, useCanvasStore, useWidgetStore } from '@/store'
 import { storeToRefs } from 'pinia'
@@ -70,19 +77,6 @@ const state = reactive<TState>({
 
 useFontStore.init() // 初始化加载字体
 
-// 生成封面
-// const draw = () => {
-//   return new Promise<string>((resolve) => {
-//     if (!canvasImage.value) {
-//       resolve('')
-//     } else {
-//       canvasImage.value.createCover(({ key }: { key: string }) => {
-//         resolve(_config.IMG_URL + key)
-//       })
-//     }
-//   })
-// }
-
 let addition = 0 // 累加大小
 let lenCount = 0 // 全部大小
 let lens = 0 // 任务数
@@ -118,7 +112,7 @@ async function prepare() {
 
   if (page.backgroundImage) {
     emit('change', { downloadPercent: 1, downloadText: '正在准备上传', downloadMsg: '请等待..' })
-    page.backgroundImage = await github.putPic(page.backgroundImage.split(',')[1])
+    page.backgroundImage = await uploadTemplateImage(page.backgroundImage)
   }
 
   for (const item of widgets) {
@@ -135,7 +129,7 @@ async function uploadImgs() {
   if (queue.length > 0) {
     const item = queue.pop()
     if (!item) return
-    const url = await github.putPic((item?.imgUrl || '').split(',')[1])
+    const url = await uploadTemplateImage(item?.imgUrl || '')
     addition += item.imgUrl?.length || 0
     let downloadPercent: number | null = (addition / lenCount) * 100
     downloadPercent >= 100 && (downloadPercent = null)
@@ -147,13 +141,30 @@ async function uploadImgs() {
   }
 }
 
+/** 将模板中的 base64 图片上传到当前服务，避免新模板依赖旧版 GitHub 图床。 */
+async function uploadTemplateImage(source: string): Promise<string> {
+  if (!source || !source.startsWith('data:')) return source
+  const response = await fetch(source)
+  const blob = await response.blob()
+  const extension = blob.type.split('/')[1] || 'png'
+  const file = new File([blob], `template-${Date.now()}.${extension}`, { type: blob.type || 'image/png' })
+  const result: any = await api.material.upload({ file, folder: 'template' }, () => {})
+  const url = result?.url || result?.result?.url
+  if (!url) throw new Error('本地图片上传失败：响应缺少地址')
+  return url
+}
+
 const uploadTemplate = async () => {
-  emit('change', { downloadPercent: 95, downloadText: '正在处理封面', downloadMsg: '即将结束...' })
+  emit('change', { downloadPercent: 95, downloadText: '正在处理封面', downloadMsg: '即将完成，请稍等...' })
   // const cover = await draw()
   const data = Number(type) == 1 ? JSON.stringify(widgets) : JSON.stringify({ page, widgets })
-  const { id, stat, msg } = await api.home.saveTemp({ title: '自设计模板', type, data, width: page.width, height: page.height })
-  stat !== 0 ? useNotification('保存成功', '') : useNotification('保存失败', msg, { type: 'error' })
-  router.push({ path: '/psd', query: { id }, replace: true })
+  try {
+    const { id } = await adminApi.saveTemplate({ title: '自设计模板', type, data, width: page.width, height: page.height })
+    useNotification('保存成功', '')
+    router.push({ path: '/psd', query: { id }, replace: true })
+  } catch (err: any) {
+    useNotification('保存失败', err?.msg || err?.message || '请稍后再试', { type: 'error' })
+  }
   emit('change', { downloadPercent: 99.99, downloadText: '上传完成', cancelText: '' }) // 关闭弹窗
 }
 

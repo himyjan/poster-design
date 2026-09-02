@@ -1,4 +1,12 @@
 <!--
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ * Copyright (C) 2026 palxiao https://xpai.design
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
  * @Author: ShawnPhang
  * @Date: 2021-08-27 15:16:07
  * @Description: 模板列表
@@ -12,8 +20,6 @@
     <el-divider v-show="state.title" style="margin-top: 1.7rem" content-position="left">
       <span style="font-weight: bold">{{ state.title }}</span>
     </el-divider>
-
-    <el-button class="upload-psd" plain type="primary" @click="openPSD">导入 PSD 创建模板</el-button>
 
     <ul ref="listRef" v-infinite-scroll="load" class="infinite-list" :infinite-scroll-distance="150" style="overflow: auto">
       <img-water-fall :listData="state.list" @select="selectItem" />
@@ -74,11 +80,18 @@ const state = reactive<TState>({
 // const { tempEditing } = useSetupMapGetters(['tempEditing'])
 const { dHistoryParams } = storeToRefs(useHistoryStore())
 
-const pageOptions: TPageOptions = { page: 0, pageSize: 20, cate: 1 }
+const pageOptions: TPageOptions = { page: 0, pageSize: 20, cate: '' }
 const { cate, edit } = route.query
 cate && (pageOptions.cate = (cate as LocationQueryValue) ?? 1)
-// edit && store.commit('managerEdit', true)
-edit && userStore.managerEdit(true)
+// 模板编辑为管理员能力，仅管理员角色可进入编辑态（数据侧由后端 requireAdmin 兜底）
+const isAdmin = (() => {
+  try {
+    return JSON.parse(localStorage.getItem('xp_user') || 'null')?.role === 1
+  } catch {
+    return false
+  }
+})()
+edit && isAdmin && userStore.managerEdit(true)
 
 // onMounted(async () => {})
 
@@ -107,18 +120,18 @@ const load = async (init: boolean = false, stat?: string) => {
   }, 100)
 }
 
+// 当首屏内容不足以填满容器时，继续加载下一页，避免出现空白区域
+function checkHeight() {
+  if (!listRef.value || state.loadDone) return
+  const content = listRef.value.firstElementChild as HTMLElement | null
+  if (content && listRef.value.offsetHeight > content.offsetHeight) load()
+}
+
 function cateChange(type: any) {
   state.title = type.name
   const init = pageOptions.cate != type.id
   pageOptions.cate = type.id
   load(init, pageOptions.state)
-}
-
-function checkHeight() {
-  if (!listRef.value) return
-  // 检查高度是否占满，否则继续请求下一页
-  const isLess = listRef.value.offsetHeight > (listRef.value.firstElementChild as HTMLElement)?.offsetHeight
-  isLess && load()
 }
 
 let hideReplacePrompt: any = localStorage.getItem('hide_replace_prompt')
@@ -160,12 +173,8 @@ async function selectItem(item: IGetTempListData) {
 }
 
 function setTempId(tempId: number | string) {
-  const { id } = route.query
-  router.push({ path: '/home', query: { tempid: tempId, id }, replace: true })
-}
-
-const openPSD = () => {
-  window.open(router.resolve('/psd').href, '_blank')
+  // 选择新模板时清除旧作品 id，避免下载/截图接口按 id 优先加载旧作品。
+  router.push({ path: '/home', query: { tempid: tempId }, replace: true })
 }
 
 defineExpose({
@@ -223,10 +232,5 @@ defineExpose({
   text-align: center;
   font-size: 14px;
   color: #999;
-}
-
-.upload-psd {
-  margin: 0 1rem;
-  width: calc(100% - 2rem);
 }
 </style>

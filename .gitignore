@@ -4,10 +4,10 @@ node_modules
 config.json
 /.vite
 yarn.lock
-
-screenshot/node_modules/
-screenshot/dist/
-screenshot/_apidoc/
+AGENTS.md
+CLAUDE.md
+/docs
+.playwright-mcp
 
 # local env files
 .env.local
@@ -26,3 +26,4 @@ pnpm-debug.log*
 *.njsproj
 *.sln
 *.sw?
+

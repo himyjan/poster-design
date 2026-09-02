@@ -3,4 +3,3 @@ declare namespace Type {
         [propName: string]: any
     }
 }
-

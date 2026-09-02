@@ -3,6 +3,8 @@
     "target": "esnext",
     "module": "esnext",
     "strict": true,
+    "allowJs": true,
+    "checkJs": false,
     "jsx": "preserve",
     "importHelpers": true,
     "moduleResolution": "node",
@@ -12,7 +14,7 @@
     "allowSyntheticDefaultImports": true,
     "sourceMap": true,
     "baseUrl": ".",
-    "types": ["webpack-env", "element-plus/global"],
+    "types": ["element-plus/global"],
     "paths": {
       "@/*": ["src/*"]
     },

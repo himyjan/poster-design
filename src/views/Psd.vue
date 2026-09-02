@@ -46,6 +46,7 @@
 <script lang="ts" setup>
 import { reactive, onMounted, nextTick, onBeforeMount, ref, getCurrentInstance } from 'vue'
 import { useRoute } from 'vue-router'
+import { ElMessage } from 'element-plus'
 import RightClickMenu from '@/components/business/right-click-menu/RcMenu.vue'
 import Moveable from '@/components/business/moveable/Moveable.vue'
 import shortcuts from '@/mixins/shortcuts'
@@ -96,6 +97,17 @@ const { dPage } = storeToRefs(pageStore)
 const { dZoom } = storeToRefs(useCanvasStore())
 
 const zoomControlRef = ref<typeof zoomControl | null>()
+
+// 管理员守卫：导入 PSD 功能已移至管理后台，仅管理员可访问
+try {
+  const user = JSON.parse(localStorage.getItem('xp_user') || 'null')
+  if (!user || user.role !== 1) {
+    ElMessage.warning('导入 PSD 仅对管理员开放，请使用管理员账号登录')
+    setTimeout(() => (window.location.href = './'), 600)
+  }
+} catch (e) {
+  setTimeout(() => (window.location.href = './'), 600)
+}
 
 let loading: ReturnType<typeof useLoading> | null = null
 const myWorker = new useWorker(psdWorker)

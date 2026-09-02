@@ -3,7 +3,7 @@
  * @Date: 2021-08-09 14:00:23
  * @Description: 文字特效选择框组件
  * @LastEditors: ShawnPhang <https://m.palxp.cn>
- * @LastEditTime: 2024-03-11 01:43:21
+ * @LastEditTime: 2026-09-02 01:12:32
 -->
 <template>
   <el-card class="box-card" shadow="hover" :body-style="{ padding: '20px' }">
@@ -39,7 +39,7 @@
           A
         </div>
         <span class="title">文字特效</span>
-        <el-popover :visible="state.visiable" placement="left" :width="220" trigger="click">
+        <!-- <el-popover :visible="state.visiable" placement="left" :width="220" trigger="click">
           <div class="select__box">
             <div class="select__box__select-item" @click="selectEffect()">无</div>
             <div v-for="(l, li) in state.list" :key="'list' + li" class="select__box__select-item" @click="selectEffect(l.id)">
@@ -49,17 +49,12 @@
           <template #reference>
             <el-button class="button" link @click="openSet">{{ state.visiable ? '取消' : '选择' }}</el-button>
           </template>
-        </el-popover>
+        </el-popover> -->
       </div>
     </template>
     <!-- filling 描边 stroke 阴影 shadow -->
-    <div v-show="state.layers && state.layers.length > 0" class="text item"><span style="width: 65px">强度</span> <el-slider v-model="state.strength" show-input :maxValue="100" input-size="small" :show-input-controls="false" @input="strengthChange"> </el-slider></div>
-    <el-collapse-item>
-      <template #title>
-        <b>高级编辑</b>
-      </template>
-      <div class="line"></div>
-      <div style="display: flex; justify-content: space-between">
+    <!-- <div v-show="state.layers && state.layers.length > 0" class="text item"><span style="width: 65px">强度</span> <el-slider v-model="state.strength" show-input :maxValue="100" input-size="small" :show-input-controls="false" @input="strengthChange"> </el-slider></div> -->
+    <div style="width: 100%; display: inline-flex; justify-content: space-between">
         <el-button
           class="add-layer" size="small" type="primary" link
           @click="addLayer">
@@ -103,7 +98,13 @@
           </div>
         </template>
       </draggable>
-    </el-collapse-item>
+    <!-- <el-collapse-item>
+      <template #title>
+        <b>高级编辑</b>
+      </template>
+      <div class="line"></div>
+      
+    </el-collapse-item> -->
   </el-card>
 </template>
 

@@ -14,9 +14,9 @@
 ERROR: Failed to set up Chromium xxx! Set "PUPPETEER_SKIP_DOWNLOAD" env variable to skip download.
 ```
 
-不用慌，这是因为 puppeteer 会自动下载 Chromium，国内可能受到网络波动的影响而失败。
+这是因为 puppeteer 会自动下载 Chromium，国内网络多为失败。所以通常更推荐使用以下命令安装依赖：
 
-如果跳过的话需要手动安装，比较麻烦所以并不推荐，请**多尝试安装几次，或者更换国内的镜像源再安装**。
+`PUPPETEER_DOWNLOAD_BASE_URL=https://cdn.npmmirror.com/binaries/chrome-for-testing npm install`
 
 ### 启动项目并热更新
 
@@ -30,7 +30,7 @@ ERROR: Failed to set up Chromium xxx! Set "PUPPETEER_SKIP_DOWNLOAD" env variable
 
 > 服务器环境需求：
 > 
-> - Node.js 16.18.1（尽量保持生产版本相同，避免出现错误）
+> - Node.js 16.18.1（早期生产版本，其它版本未测试）
 > 
 > - PM2（进程守护）
 
@@ -48,12 +48,12 @@ website // 编辑器项目的地址
 filePath // 生成图片保存的目录
 ```
 
-### 多线程集群
+### 僵尸进程问题
 
-本服务中实现多任务操作使用的是队列的处理方式，保留了 JavaScript 单线程的特点，线程安全并且性能高效，能够保证下限更稳定，但在高配置机器上可能无法充分利用多核 CPU 资源。
+实测 puppeteer 在调用 Chromium 实例后，由于 Chrome 在运行时又会调用一些子进程，而销毁主进程时这些子进程就成了孤儿进程，最终大量堆积，它们不会占用内存，但最终可能导致 puppeteer 彻底瘫痪。建议通过 pm2 定时重启服务（如 `pm2 startOrRestart` 配合 cron），或使用任意容器/守护方案周期性释放进程。
 
-如果你希望在配置更高的机器上创建多线程集群，可以尝试使用 [puppeteer-cluster](https://github.com/thomasdondorf/puppeteer-cluster)。
+### 环境变量
 
-### 生成 API 文档
-
-`build:apidoc`
+- `PORT`：服务监听端口（默认 7001）
+- `AUTH_SECRET`：JWT 签名密钥，**生产环境必须设置**，不设置将使用内置默认值
+- `PUPPETEER_DOWNLOAD_BASE_URL`：安装依赖时加速 Chromium 下载

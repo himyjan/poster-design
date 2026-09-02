@@ -11,6 +11,76 @@ import { TWidgetStore, TdWidgetData } from '..'
 import { customAlphabet } from 'nanoid/non-secure'
 const nanoid = customAlphabet('1234567890abcdef', 12)
 
+/**
+ * 将元素尺寸限制在画布最大尺寸内，并按缩放比例重新居中。
+ * 仅在元素超出画布时才生效，保持宽高比。
+ * @param setting 待添加的元素设置
+ * @param dPageWidth 画布宽度
+ * @param dPageHeight 画布高度
+ */
+export function constrainToCanvas(setting: TdWidgetData, dPageWidth: number, dPageHeight: number): void {
+  const w = Number(setting.width)
+  const h = Number(setting.height)
+  if (!w || !h || !(w > dPageWidth || h > dPageHeight)) return
+
+  const ratio = Math.min(dPageWidth / w, dPageHeight / h)
+  const newWidth = Math.round(w * ratio)
+  const newHeight = Math.round(h * ratio)
+  setting.width = newWidth
+  setting.height = newHeight
+  setting.left = dPageWidth / 2 - newWidth / 2
+  setting.top = dPageHeight / 2 - newHeight / 2
+}
+
+/**
+ * 将组合(多元素)整体限制在画布最大尺寸内，按比例缩放并重新居中。
+ * 以所有元素的边界框计算组合尺寸，仅超出画布时生效。
+ * @param group 待添加的元素数组
+ * @param dPageWidth 画布宽度
+ * @param dPageHeight 画布高度
+ */
+export function constrainGroupToCanvas(group: TdWidgetData[], dPageWidth: number, dPageHeight: number): void {
+  if (!group || group.length === 0) return
+
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity
+  for (const item of group) {
+    const l = Number(item.left) || 0
+    const t = Number(item.top) || 0
+    const w = Number(item.width) || 0
+    const h = Number(item.height) || 0
+    if (l < minX) minX = l
+    if (t < minY) minY = t
+    if (l + w > maxX) maxX = l + w
+    if (t + h > maxY) maxY = t + h
+  }
+  if (!isFinite(minX)) return
+
+  const groupWidth = maxX - minX
+  const groupHeight = maxY - minY
+  if (!groupWidth || !groupHeight || !(groupWidth > dPageWidth || groupHeight > dPageHeight)) return
+
+  const ratio = Math.min(dPageWidth / groupWidth, dPageHeight / groupHeight)
+  const oldCenterX = minX + groupWidth / 2
+  const oldCenterY = minY + groupHeight / 2
+  const newCenterX = dPageWidth / 2
+  const newCenterY = dPageHeight / 2
+
+  for (const item of group) {
+    const l = Number(item.left) || 0
+    const t = Number(item.top) || 0
+    const w = Number(item.width) || 0
+    const h = Number(item.height) || 0
+
+    item.width = w ? Math.round(w * ratio) : w
+    item.height = h ? Math.round(h * ratio) : h
+    item.left = Math.round(newCenterX + (l - oldCenterX) * ratio)
+    item.top = Math.round(newCenterY + (t - oldCenterY) * ratio)
+    if (typeof item.fontSize === 'number') {
+      item.fontSize = Math.round(item.fontSize * ratio)
+    }
+  }
+}
+
 type TUpdateWidgetKey = keyof TdWidgetData
 
 export type TUpdateWidgetPayload = {
@@ -107,6 +177,10 @@ export function addWidget(store: TWidgetStore, setting: TdWidgetData) {
   const historyStore = useHistoryStore()
   const canvasStore = useCanvasStore()
   setting.uuid = nanoid()
+
+  const { width: dPageWidth, height: dPageHeight } = canvasStore.dPage
+  constrainToCanvas(setting, dPageWidth, dPageHeight)
+
   store.dWidgets.push(setting)
   const len = store.dWidgets.length
   // store.state.dActiveElement = store.state.dWidgets[len - 1]

@@ -30,6 +30,22 @@ export const drawLink = isDev ? 'http://127.0.0.1:5173/draw' : serviceComfig.web
 export const filePath = isDev ? process.cwd() + `/static/` : serviceComfig.filePath
 
 /**
+ * 本服务自访问地址（封面生成时自调用截图接口）
+ */
+export const serviceLink = `http://127.0.0.1:${process.env.PORT || serviceComfig.port}`
+
+/**
+ * 静态资源（上传文件 / 生成图片）外链前缀
+ * 使用相对路径入库，前端与后端同源部署时开箱可用；前后端异源部署时由网关将 /static 转发到本服务
+ */
+export const staticLink = '/static/'
+
+/**
+ * 用户认证 token 签名密钥（生产环境建议通过环境变量 AUTH_SECRET 覆盖）
+ */
+export const tokenSecret = process.env.AUTH_SECRET || 'xpai-design-admin-secret'
+
+/**
  * 配置服务器端的chrome浏览器位置
  */
 export const executablePath = isDev ? null : '/opt/google/chrome-unstable/chrome'

@@ -1,33 +1,42 @@
 /*
- * @Author: ShawnPhang
- * @Date: 2021-08-27 14:42:15
- * @Description: AI相关接口
- * @LastEditors: ShawnPhang <https://m.palxp.cn>, Jeremy Yu <https://github.com/JeremyYu-cn>
- * @Date: 2024-03-03 19:00:00
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ * Copyright (C) 2026 palxiao https://xpai.design
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ */
+
+/**
+ * AI 能力相关接口（登录用户可用）
  */
 import fetch from '@/utils/axios'
 
-export type TCommonUploadCb = (up: number, dp: number) => void
-
-type TUploadProgressCbData = {
-  loaded: number
-  total: number
+export type TAiTextParam = {
+  prompt: string
+  style?: string
 }
 
-export type TUploadErrorResult = {type: "application/json"}
+// 生成文案
+export const textGenerate = (params: TAiTextParam) => fetch<{ list: string[] }>('api/ai/text', params, 'post')
 
-// 上传接口
-export const upload = (file: File, cb: TCommonUploadCb) => {
-  const formData = new FormData()
-  formData.append('file', file)
-  const extra = {
-    responseType: 'blob',
-    onUploadProgress: (progress: TUploadProgressCbData) => {
-      cb(Math.floor((progress.loaded / progress.total) * 100), 0)
-    },
-    onDownloadProgress: (progress: TUploadProgressCbData) => {
-      cb(100, Math.floor((progress.loaded / progress.total) * 100))
-    },
-  }
-  return fetch<MediaSource | TUploadErrorResult>('https://res.palxp.cn/ai/upload', formData, 'post', {}, extra)
+export type TAiImageParam = {
+  prompt: string
+  ratio?: string
 }
+
+// 文生图（出图较慢，可单独传超时与 loading 配置）
+export const imageGenerate = (params: TAiImageParam, extra: Record<string, any> = {}) => fetch<{ url: string; width: number; height: number }>('api/ai/image', params, 'post', {}, extra)
+
+export type TAiColorItem = {
+  name: string
+  value: string
+}
+
+export type TAiColorParam = {
+  prompt: string
+}
+
+// 智能配色
+export const colorSuggest = (params: TAiColorParam) => fetch<{ colors: TAiColorItem[] }>('api/ai/color', params, 'post')

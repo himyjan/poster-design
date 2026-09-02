@@ -221,9 +221,7 @@ async function uploadImgDone(img: TUploadDoneData) {
   // store.commit('setShowMoveable', false)
   controlStore.setShowMoveable(false)
 
-  await api.material.addMyPhoto(img)
-  // this.innerElement.width = img.width
-  // this.innerElement.height = img.height * (this.innerElement.width / img.width)
+  // 上传接口已自动记录"我的上传"，这里直接应用图片
   state.innerElement.url = img.url
 
   // store.commit('setShowMoveable', true)

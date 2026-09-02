@@ -9,8 +9,7 @@ import fetch from '@/utils/axios'
 import _config from '@/config'
 import { IGetTempListData } from './home'
 
-// 获取素材分类：
-export const getKinds = (params: Type.Object = {}) => fetch('design/cate', params)
+export const getAssetCategories = (type: 'materials' | 'photos') => fetch<{ list: { id: number; cate: string; name: string; type: string }[] }>('design/asset/categories', { type })
 
 type TGetListParam = {
   first_id?: number
@@ -46,19 +45,22 @@ export type TGetFontParam = {
   pageSize?: number
 }
 
-/** 字体item数据 */
+/** 字体 item 数据（公开接口返回：不含 created_at 等管理字段） */
 export type TGetFontItemData = {
   id: number
   alias: string
-  oid: string
   value: string
   preview: string
   woff: string
-  lang: string
+  ttf?: string
+  lang: 'zh' | 'en'
+  font_family?: string
+  size?: number
+  woff_size?: number
 }
 
-// 获取字体
-export const getFonts = (params: TGetFontParam = {}) => fetch<TPageRequestResult<TGetFontItemData[]>>('design/fonts', params)
+// 获取字体（公开接口，无分页 total）
+export const getFonts = (params: TGetFontParam = {}) => fetch<{ list: TGetFontItemData[] }>('design/fonts', params)
 
 type TGetFontSubParam = {
   font_id: string | number
@@ -70,12 +72,13 @@ type TGetFontSubExtra = {
   responseType?: string
 }
 
+// 字体子集化（服务端暂未提供该接口，受 _config.supportSubFont 门控，默认关闭）
 export const getFontSub = (params: TGetFontSubParam, extra: TGetFontSubExtra = {}) => fetch<Blob | string>('design/font_sub', params, 'get', {}, extra)
 
 type TGetImageListParams = {
   page?: number
   pageSize?: number
-  cate?: number
+  cate?: string | number
 }
 
 export type TGetImageListResult = {
@@ -112,7 +115,6 @@ export const getMyPhoto = (params: TMyPhotoParams) => fetch<TPageRequestResult<T
 
 type TDeleteMyPhotoParams = {
   id: string | number
-  key: string
 }
 
 export const deleteMyPhoto = (params: TDeleteMyPhotoParams) => fetch<void>('design/user/image/del', params, 'post')
@@ -123,16 +125,7 @@ type TDeleteMyWorksParams = {
 
 export const deleteMyWorks = (params: TDeleteMyWorksParams) => fetch<void>('design/poster/del', params, 'post')
 
-type TAddMyPhotoParam = {
-  width: number
-  height: number
-  url: string
-}
-
-// 添加图片
-export const addMyPhoto = (params: TAddMyPhotoParam) => fetch<void>('design/user/add_image', params)
-
-// 上传接口
+// 上传接口（后端保存文件成功后会自动记录到"我的上传"列表，无需再单独调用添加接口）
 export const upload = ({ file, folder = 'user' }: any, cb: Function) => {
   const formData = new FormData()
   formData.append('file', file)

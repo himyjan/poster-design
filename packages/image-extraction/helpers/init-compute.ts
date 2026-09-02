@@ -3,7 +3,7 @@
  * @Date: 2023-10-05 16:33:07
  * @Description:
  * @LastEditors: ShawnPhang <https://m.palxp.cn>
- * @LastEditTime: 2023-10-08 11:09:59
+ * @LastEditTime: 2026-09-02 18:38:07
  */
 import { HIDDEN_BOARD_GAP_SIZE, HIDDEN_BOARD_MAX_SIZE, INITIAL_SCALE_RATIO } from '../constants'
 import { BoardRect, GapSize, RectSize } from '../types/common'
@@ -33,8 +33,9 @@ export function computeValidImageSize(imageSource: ImageBitmap): RectSize {
     gapSize: HIDDEN_BOARD_GAP_SIZE,
     targetSize: HIDDEN_BOARD_MAX_SIZE,
   })
-  width *= imageScaleRatio
-  height *= imageScaleRatio
+  // https://github.com/palxiao/poster-design/issues/153#issuecomment-3239937941
+  // width *= imageScaleRatio
+  // height *= imageScaleRatio
   return { width, height }
 }
 

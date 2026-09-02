@@ -1,4 +1,13 @@
 /*
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ * Copyright (C) 2026 palxiao https://xpai.design
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ */
+/*
  * @Author: ShawnPhang
  * @Date: 2020-07-22 20:13:14
  * @Description: 服务端截图
@@ -40,13 +49,17 @@ export async function screenshots(req: any, res: any) {
       res.json({ code: 200, msg: '服务器表示顶不住啊，等等再来吧~' })
       return
     }
-    const targetUrl = url + id + `${tempType ? '&tempType=' + tempType : ''}` + `&index=${index}`
-    queueRun(saveScreenshot, targetUrl, { width, height, path, thumbPath, size, quality })
+    const renderToken = typeof req.query.token === 'string' ? `&token=${encodeURIComponent(req.query.token)}` : ''
+    const targetUrl = url + id + `${tempType ? '&tempType=' + tempType : ''}` + `&index=${index}${renderToken}`
+    // /draw 会在模板、图片和字体完成加载后主动调用 loadFinishToInject；
+    // 禁止 load 事件提前截图，否则会得到空白页面。
+    queueRun(saveScreenshot, targetUrl, { width, height, path, thumbPath, size, quality, prevent: true })
       .then(() => {
         res.setHeader('Content-Type', 'image/jpg')
         // const stats = fs.statSync(path)
         // res.setHeader('Cache-Control', stats.size)
-        type === 'file' ? res.sendFile(path) : res.sendFile(thumbPath)
+        // 组件模板不生成 JPG 缩略图，cover 请求直接返回 PNG 截图，避免 sendFile(null)。
+        type === 'file' || !thumbPath ? res.sendFile(path) : res.sendFile(thumbPath)
       })
       .catch((e: any) => {
         res.json({ code: 500, msg: '图片生成错误' })

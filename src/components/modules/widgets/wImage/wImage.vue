@@ -1,3 +1,12 @@
+/*
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ * Copyright (C) 2026 palxiao https://xpai.design
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ */
 <template>
   <div
     :id="params.uuid"
@@ -122,6 +131,8 @@ watch(
     // TODO 移动事件绑定
     const el = document.getElementById(`${props.params.uuid}`)
     if (val) {
+      // 进入裁剪时从已保存的 transform 还原位移，避免缩放/拖拽被初始位置覆盖
+      initHoldPosition()
       el?.addEventListener('mousedown', touchstart, false)
     } else {
       el?.removeEventListener('mousedown', touchstart, false)
@@ -278,11 +289,27 @@ function setEditBox(attrName: string, value: string | number) {
   state.editBoxStyle.transform = setValue
 }
 
+// 从已持久化的 transform 中解析 translate，还原裁剪位移（translate 存的是 holdPosition / zoom）
+function initHoldPosition() {
+  const tf = props.params.transform || ''
+  const iof = tf.indexOf('translate')
+  if (iof == -1) return
+  const inner = tf.substring(iof + 'translate('.length, tf.indexOf(')', iof))
+  const [x, y] = inner.split(',').map((v) => parseFloat(v))
+  if (typeof x === 'number' && typeof y === 'number' && !isNaN(x) && !isNaN(y)) {
+    state.holdPosition = { left: x * props.params.zoom, top: y * props.params.zoom }
+  }
+}
+
 function updateZoom() {
   setEditBox('scale', props.params.zoom)
   setTransform('scale', props.params.zoom)
-  // this.$refs.target.style.transform = this.params.transform
-  handlemousemove()
+  // 仅在裁剪状态下同步 translate；非裁剪时 holdPosition 可能为初始 {0,0}，
+  // 若覆盖已持久化的裁剪位移会导致重新加载/下载后裁剪坐标丢失
+  if (cropEdit.value) {
+    // this.$refs.target.style.transform = this.params.transform
+    handlemousemove()
+  }
 }
 
 function fixRotate() {

@@ -1,4 +1,12 @@
 <!--
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ * Copyright (C) 2026 palxiao https://xpai.design
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
  * @Author: ShawnPhang
  * @Date: 2021-08-27 15:16:07
  * @Description: 素材列表，主要用于文字组合列表
@@ -84,10 +92,10 @@ const pageOptions = { type: 1, page: 0, pageSize: 20 }
 onMounted(async () => {
   if (state.types.length <= 0) {
     // const types = await api.material.getKinds({ type: 3 })
-    state.types = [
-      { cate: 'text', name: '高级特效文字' },
-      { cate: 'comp', name: '示例组合模板' },
-    ]
+    const categoryRes: any = await api.home.getTemplateCategories(1)
+    state.types = Array.isArray(categoryRes?.list)
+      ? categoryRes.list.map((item: any) => ({ cate: item.name, name: item.name }))
+      : []
     for (const iterator of state.types) {
       const { list } = await api.home.getCompList({
         type: 1,
@@ -129,7 +137,7 @@ const load = async (init: boolean = false) => {
 
   const res = await api.home.getCompList({
     ...pageOptions,
-    cate: state.currentCategory?.id || state.currentCategory?.cate,
+    cate: state.currentCategory?.cate || state.currentCategory?.id,
   })
   if (init) {
     state.list = res?.list
@@ -140,24 +148,6 @@ const load = async (init: boolean = false) => {
   setTimeout(() => {
     state.loading = false
   }, 100)
-}
-
-type TActionParam = {
-  name: string
-  value: string
-}
-
-function action({ name, value }: TActionParam, item: TGetCompListResult, index: number) {
-  switch (name) {
-    case 'del':
-      delComp(item, index)
-      break
-  }
-}
-
-function delComp({ id }: TGetCompListResult, index: number) {
-  api.home.removeComp({ id })
-  state.list.splice(index, 1)
 }
 
 const selectTypes = (item: TGetCompListResult) => {
@@ -234,7 +224,6 @@ function getCompDetail(params: TGetTempDetail): Promise<TTempDetail> {
 
 defineExpose({
   load,
-  action,
   back,
   selectTypes,
   mouseup,

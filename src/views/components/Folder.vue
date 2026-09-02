@@ -1,9 +1,17 @@
 <!--
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ * Copyright (C) 2026 palxiao https://xpai.design
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
  * @Author: ShawnPhang
  * @Date: 2024-04-03 19:15:21
  * @Description: 文件 
  * @LastEditors: ShawnPhang <https://m.palxp.cn>
- * @LastEditTime: 2024-04-10 07:16:00
+ * @LastEditTime: 2026-08-31 13:19:45
 -->
 <template>
   <el-dropdown trigger="click" size="large" placement="bottom-start">
@@ -13,11 +21,11 @@
     <template #dropdown>
       <el-dropdown-menu>
         <el-dropdown-item><div @click="$emit('select', 'newDesign')" class="item">创建设计</div></el-dropdown-item>
-        <el-dropdown-item @click="openPSD">导入文件</el-dropdown-item>
+        <!-- <el-dropdown-item @click="openPSD">导入文件</el-dropdown-item> -->
         <el-dropdown-item @click="$emit('select', 'save')" divided>保存</el-dropdown-item>
-        <el-dropdown-item @click="$emit('select', 'download')">导出文件</el-dropdown-item>
-        <el-dropdown-item disabled>版本记录</el-dropdown-item>
-        <el-dropdown-item disabled>批量套模板</el-dropdown-item>
+        <el-dropdown-item @click="$emit('select', 'download')">下载图片</el-dropdown-item>
+        <!-- <el-dropdown-item disabled>版本记录</el-dropdown-item> -->
+        <!-- <el-dropdown-item disabled>批量套模板</el-dropdown-item> -->
         <el-dropdown-item @click="$emit('select', 'changeLineGuides')" divided>标尺与参考线</el-dropdown-item>
       </el-dropdown-menu>
     </template>

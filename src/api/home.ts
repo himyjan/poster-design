@@ -44,6 +44,7 @@ type IGetTempListResult = TPageRequestResult<IGetTempListData[]>
 
 // 获取模板列表
 export const getTempList = (params: IGetTempListParam) => fetch<IGetTempListResult>('design/list', params, 'get')
+export const getTemplateCategories = (type: 0 | 1 = 0) => fetch<{ list: { id: number; name: string }[] }>('design/template/categories', { type }, 'get')
 
 export type TGetTempDetail = {
   id: number
@@ -77,16 +78,6 @@ export const getTempDetail = (params: TGetTempDetail) => fetch<TTempDetail>('des
 type TGetCategoriesParams = {
   type?: number
 }
-export type TGetCategoriesData = {
-  id: number
-  name: string
-  pid: number
-  type: number
-}
-type TgetCategoriesResult = TCommResResult<TGetCategoriesData>
-
-export const getCategories = (params: TGetCategoriesParams) => fetch<TgetCategoriesResult[]>('design/cate', params, 'get')
-
 
 // 保存模板
 export const saveTemp = (params: Type.Object = {}) => fetch('design/edit', params, 'post')
@@ -117,13 +108,6 @@ type getCompListReturn = TPageRequestResult<TGetCompListResult[]>
 // 组件相关接口
 export const getCompList = (params: TGetCompListParam) => fetch<getCompListReturn>('design/list', params, 'get')
 
-type TRemoveComp = {
-  id: string | number
-}
-
-export const removeComp = (params: TRemoveComp) => fetch<void>('design/del', params, 'post')
-// export const getCompDetail = (params: Type.Object = {}) => fetch('/api/template/temp_info', params, 'get')
-
 type TSaveWorksParams = {
   title: string
   temp_id?: string
@@ -143,11 +127,8 @@ export type TSaveWorksResult = {
 // 保存作品
 export const saveWorks = (params: TSaveWorksParams) => fetch<TSaveWorksResult>('design/save', params, 'post')
 
-// 保存个人模板
-export const saveMyTemp = (params: Type.Object = {}) => fetch('design/user/temp', params, 'post')
-
 // 获取作品
-export const getWorks = (params: TGetTempDetail) => fetch<TTempDetail>('design/poster', params, 'get')
+export const getWorks = (params: TGetTempDetail, token?: string) => fetch<TTempDetail>('design/poster', params, 'get', token ? { Authorization: token } : {})
 
 type TGetMyDesignParams = {
   page: number

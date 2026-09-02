@@ -1,125 +1,164 @@
 /*
- * @Author: ShawnPhang
- * @Date: 2024-05-16 18:25:10
- * @Description: 示例代码，仅供参考
- * @LastEditors: ShawnPhang <https://m.palxp.cn>
- * @LastEditTime: 2024-08-17 11:22:42
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ * Copyright (C) 2026 palxiao https://xpai.design
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  */
-import { Request, Response } from 'express'
-import fs from 'fs'
-import path from 'path'
+
+/**
+ * 模板 / 素材相关接口实现（数据源：SQLite）
+ */
+import { Response } from 'express'
 import axios from '../utils/http'
-import multiparty from 'multiparty'
-import { filePath } from '../configs'
-import { checkCreateFolder, randomCode, send } from '../utils/tools'
+import { serviceLink, staticLink } from '../configs'
+import { send } from '../utils/tools'
+import * as templatesRepo from '../db/templates'
+import * as materialsRepo from '../db/materials'
+import * as fontsRepo from '../db/fonts'
+import * as templateCategoriesRepo from '../db/templateCategories'
+import { listAssetCategories } from '../db/assetCategories'
 
-const FileUrl = 'http://localhost:7001/static/'
-
-
-// design/list 获取模板列表（虚拟）
+// design/list 获取模板列表
 export async function getTemplates(req: any, res: Response) {
   /**
-   * @api {get} /design/list 获取模板列表（虚拟）
+   * @api {get} /design/list 获取模板列表
    * @apiVersion 1.0.0
    * @apiGroup design
    */
-  const { cate, type } = req.query
-  const tempPath = type == 1 ? `../mock/components/list/${cate}.json` : '../mock/templates/list.json'
-  try {
-    const list = fs.readFileSync(path.resolve(__dirname, tempPath), 'utf8')
-    send.success(res, { list: JSON.parse(list) })
-  } catch (error) {}
+  const { cate, type } = req.query || {}
+  const typeValue = type == 1 ? 1 : 0
+  const page = Math.max(1, Number.parseInt(String(req.query.page || '1'), 10) || 1)
+  const pageSize = Math.min(100, Math.max(1, Number.parseInt(String(req.query.pageSize || '20'), 10) || 20))
+  const rawCate = typeof cate === 'string' ? cate.trim() : ''
+  const categoryId = /^\d+$/.test(rawCate) ? Number(rawCate) : 0
+  const category = categoryId > 0 ? templateCategoriesRepo.getCategoryById(categoryId, typeValue) : undefined
+  const categoryName = category?.name || rawCate
+  const result = templatesRepo.listPage(typeValue, { page, pageSize, cate: categoryName, search: typeof req.query.search === 'string' ? req.query.search.trim() : '' })
+  send.success(res, result)
 }
 
-// design/temp 获取模板（虚拟）
+export async function getTemplateCategories(req: any, res: Response) {
+  send.success(res, { list: templateCategoriesRepo.listCategories(req.query?.type == 1 ? 1 : 0) })
+}
+
+// design/temp 获取模板详情
 export async function getDetail(req: any, res: Response) {
   /**
-   * @api {get} /design/list 获取模板（虚拟）
+   * @api {get} /design/temp 获取模板
    * @apiVersion 1.0.0
    * @apiGroup design
    */
-  const { cate, type, id } = req.query
-  const dPath = type == 1 ? `../mock/components/detail/${id}.json` : `../mock/templates/${id}.json`
-  try {
-    const detail = fs.readFileSync(path.resolve(__dirname, dPath), 'utf8')
-    send.success(res, JSON.parse(detail))
-  } catch (error) {}
-}
-
-// design/material 获取素材（虚拟）
-export async function getMaterial(req: any, res: any) {
-  /**
-   * @api {get} /design/material 获取素材（虚拟）
-   * @apiVersion 1.0.0
-   * @apiGroup design
-   */
-  const { cate } = req.query
-  try {
-    const detail = fs.readFileSync(path.resolve(__dirname, `../mock/materials/${cate}.json`), 'utf8')
-    send.success(res, { list: JSON.parse(detail) })
-  } catch (error) {
-    console.log(error)
+  const { type, id } = req.query
+  const tid = Number(id)
+  if (!Number.isInteger(tid) || tid <= 0) {
+    return send.error(res, '参数 id 无效')
   }
-}
-
-// design/imgs 获取照片素材（虚拟）
-export async function getPhotos(req: any, res: any) {
-  /**
-   * @api {get} /design/imgs 获取照片素材（虚拟）
-   * @apiVersion 1.0.0
-   * @apiGroup design
-   */
-  const { cate } = req.query
-  try {
-    const detail = fs.readFileSync(path.resolve(__dirname, `../mock/materials/photos/${cate}.json`), 'utf8')
-    send.success(res, { list: JSON.parse(detail) })
-  } catch (error) {}
-}
-
-// design/edit 保存模板（虚拟）
-export async function saveTemplate(req: any, res: any) {
-  /**
-   * @api {post} /design/edit 保存模板（虚拟）
-   * @apiVersion 1.0.0
-   * @apiGroup design
-   */
-  let { id, title, data, width, height, type, cate, tag } = req.body
-  const folder = type == 1 ? 'components/detail' : 'templates'
-  const listPath = type == 1 ? 'components/list/comp.json' : 'templates/list.json'
-  try {
-    const isAdd = !id // 是否新增模板
-    id = id || randomCode(8)
-    const savePath = path.resolve(__dirname, `../mock/${folder}/${id}.json`)
-    const jsonData = {
-      id,
-      data,
-      title,
-      width,
-      height,
-    }
-    fs.writeFileSync(savePath, JSON.stringify(jsonData))
-    // 生成封面
-    const size = width > height ? 640 : 320
-    const fetchScreenshotUrl = `http://localhost:7001/api/screenshots?tempid=${id}&tempType=${type}&width=${width}&height=${height}&type=cover&size=${size}&quality=75`
-    await axios.get(fetchScreenshotUrl, { responseType: 'arraybuffer' })
-    // 保存到其他地方可以设置 responseType: 'arraybuffer' 后操作buffer，这里只为了得到封面，发起请求就可以了
-    if (isAdd) {
-      const listVal = fs.readFileSync(path.resolve(__dirname, `../mock/${listPath}`), 'utf8')
-      const list = JSON.parse(listVal)
-      const cover = type == 1 ? FileUrl + `/${id}-screenshot.png` : FileUrl + `/${id}-cover.jpg`
-      list.unshift({ id, cover, title, width, height })
-      fs.writeFileSync(path.resolve(__dirname, `../mock/${listPath}`), JSON.stringify(list))
-    }
-    send.success(res, { id })
-  } catch (error) {
-    console.log(error)
+  const detail = templatesRepo.getDetail(tid, type == 1 ? 1 : 0)
+  if (!detail) {
+    return send.error(res, '模板不存在')
   }
+  send.success(res, detail)
 }
 
-export default {
-  getTemplates,
-  getDetail,
-  getMaterial,
-  getPhotos,
-  saveTemplate
+// design/material 获取素材
+export async function getMaterial(req: any, res: Response) {
+  /**
+   * @api {get} /design/material 获取素材
+   * @apiVersion 1.0.0
+   * @apiGroup design
+   */
+  const list = materialsRepo.getMaterials(req.query.cate)
+  send.success(res, { list })
 }
+
+// design/imgs 获取照片素材
+export async function getPhotos(req: any, res: Response) {
+  /**
+   * @api {get} /design/imgs 获取照片素材
+   * @apiVersion 1.0.0
+   * @apiGroup design
+   */
+  const list = materialsRepo.getPhotos(req.query.cate)
+  send.success(res, { list })
+}
+
+export async function getAssetCategories(req: any, res: Response) {
+  const type = req.query?.type === 'photos' ? 'photos' : 'materials'
+  send.success(res, { list: listAssetCategories(type) })
+}
+
+// design/fonts 获取字体列表（公开接口，编辑器无需登录即可使用）
+export async function getFonts(req: any, res: Response) {
+  /**
+   * @api {get} /design/fonts 获取字体列表
+   * @apiVersion 1.0.0
+   * @apiGroup design
+   */
+  const rows = fontsRepo.listAllFonts()
+  // 对外仅暴露编辑器实际需要的字段，避免泄漏管理字段
+  const list = rows.map((row) => ({
+    id: row.id,
+    alias: row.alias,
+    value: row.value,
+    preview: row.preview,
+    woff: row.woff,
+    ttf: row.ttf,
+    lang: row.lang,
+    font_family: row.font_family,
+    size: row.size,
+    woff_size: row.woff_size,
+  }))
+  send.success(res, { list })
+}
+
+// design/edit 保存模板
+export async function saveTemplate(req: any, res: Response) {
+  /**
+   * @api {post} /design/edit 保存模板
+   * @apiVersion 1.0.0
+   * @apiGroup design
+   */
+  const { id, title, data, width, height, type } = req.body
+  // 参数校验：防止脏数据落库（NaN 会被 JSON.stringify 偷换为 null）
+  const w = Number(width)
+  const h = Number(height)
+  if (typeof data !== 'string' || !data || !(w > 0) || !(h > 0)) {
+    return send.error(res, '参数不完整或无效')
+  }
+  const tid = Number(id)
+  const isAdd = !Number.isInteger(tid) || tid <= 0 // 是否新增模板
+  const params = {
+    title: String(title || ''),
+    data,
+    width: w,
+    height: h,
+    type: (type == 1 ? 1 : 0) as 0 | 1,
+    cate: String(req.body.cate || ''),
+  }
+
+  const savedId = isAdd ? templatesRepo.createTemplate(params) : tid
+  if (!isAdd && !templatesRepo.updateTemplate(tid, params)) {
+    return send.error(res, '模板不存在')
+  }
+
+  // 生成封面（调用截图服务，成功后回填 cover）
+  try {
+    const size = w > h ? 640 : 320
+    await axios.get(
+      `${serviceLink}/api/screenshots?tempid=${savedId}&tempType=${params.type}&width=${w}&height=${h}&type=cover&size=${size}&quality=75`,
+      { responseType: 'arraybuffer' }
+    )
+    // 组件与模板的封面命名规则不同，与截图服务的产出保持一致
+    const cover = params.type === 1 ? `${staticLink}${savedId}-screenshot.png` : `${staticLink}${savedId}-cover.jpg`
+    templatesRepo.setCover(savedId, cover)
+  } catch (error) {
+    console.warn('[design] 封面生成失败:', error)
+  }
+
+  send.success(res, { id: savedId })
+}
+
+export default { getTemplates, getTemplateCategories, getDetail, getMaterial, getPhotos, getAssetCategories, getFonts, saveTemplate }

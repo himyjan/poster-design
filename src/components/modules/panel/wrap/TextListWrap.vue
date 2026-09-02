@@ -15,7 +15,6 @@
         {{ item.text }}
       </div>
     </ul>
-    <el-button class="upload-psd" plain type="primary" @click="openPSD">导入 PSD 创建组合</el-button>
     <div class="other-text-wrap">
       <comp-list-wrap />
     </div>
@@ -28,7 +27,6 @@
 import { storeToRefs } from 'pinia';
 // import wText from '../../widgets/wText/wText.vue'
 import { wTextSetting } from '../../widgets/wText/wTextSetting'
-import { useRouter } from 'vue-router';
 import { useControlStore, useCanvasStore, useWidgetStore } from '@/store';
 
 type TBasicTextData = {
@@ -40,7 +38,6 @@ type TBasicTextData = {
 
 const controlStore = useControlStore()
 const widgetStore = useWidgetStore()
-const router = useRouter()
 
 const { dPage } = storeToRefs(useCanvasStore())
 
@@ -95,10 +92,6 @@ const basicTextList: TBasicTextData[] = [
   // },
 ]
 
-const openPSD = () => {
-  window.open(router.resolve('/psd?type=1').href, '_blank')
-}
-
 defineExpose({
   selectBasicText,
 })
@@ -141,9 +134,5 @@ defineExpose({
     overflow: auto;
     width: 100%;
   }
-}
-.upload-psd {
-  margin: 0 1rem;
-  width: calc(100% - 2rem);
 }
 </style>

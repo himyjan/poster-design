@@ -1,13 +1,22 @@
 /*
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ * Copyright (C) 2026 palxiao https://xpai.design
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ */
+/*
  * @Author: ShawnPhang
  * @Date: 2021-09-30 14:47:22
  * @Description: 下载图片（单浏览器版，适用于低配置服务器）
  * @LastEditors: ShawnPhang <https://m.palxp.cn>
- * @LastEditTime: 2023-10-16 10:56:35
+ * @LastEditTime: 2026-08-31 21:39:37
  */
 const isDev = process.env.NODE_ENV === 'development'
 const puppeteer = require('puppeteer')
-const images = require('images')
+const sharp = require('sharp')
 const { executablePath } = require('../configs.ts')
 const forceTimeOut = 60 // 强制超时时间，单位：秒
 // 4K规格，总计约830万像素 3840 * 2160 2K规格，总计约830万像素 2048 * 1080
@@ -47,7 +56,7 @@ export const saveScreenshot = async (url: string, { path, width, height, thumbPa
       browser && browser.close()
       browser = null
       console.log('超时强制释放浏览器')
-      resolve()
+      reject(new Error('截图超时，页面未完成渲染'))
     }, forceTimeOut * 1000)
 
     // 打开页面
@@ -76,7 +85,7 @@ export const saveScreenshot = async (url: string, { path, width, height, thumbPa
         // 关闭浏览器
         await browser.close()
         browser = null
-        compress()
+        await compress()
         clearTimeout(regulators)
         resolve()
       })
@@ -88,7 +97,7 @@ export const saveScreenshot = async (url: string, { path, width, height, thumbPa
       await page.screenshot({ path, omitBackground: true })
       // 关闭浏览器
       browserClose()
-      compress()
+      await compress()
       // console.log('浏览器已释放');
       clearTimeout(regulators)
       resolve()
@@ -99,14 +108,16 @@ export const saveScreenshot = async (url: string, { path, width, height, thumbPa
     isPageLoad = true
 
     // 压缩图片
-    function compress() {
+    async function compress() {
+      if (!thumbPath) return
       try {
-        thumbPath &&
-          images(path)
-            .size(+size || 300)
-            .save(thumbPath, { quality: +quality || 70 })
+        await sharp(path)
+          .resize(+size || 300)
+          .jpeg({ quality: +quality || 70 })
+          .toFile(thumbPath)
       } catch (err) {
         console.log(err)
+        throw err
       }
     }
 
@@ -155,4 +166,3 @@ export const saveScreenshot = async (url: string, { path, width, height, thumbPa
 }
 
 export default { saveScreenshot }
-

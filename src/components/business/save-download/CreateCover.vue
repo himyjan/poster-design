@@ -11,7 +11,7 @@
 
 <script lang="ts" setup>
 import html2canvas from 'html2canvas'
-import Qiniu from '@/common/methods/QiNiu'
+import api from '@/api'
 // import { useSetupMapGetters } from '@/common/hooks/mapGetters'
 import { storeToRefs } from 'pinia'
 import { useCanvasStore, useWidgetStore } from '@/store'
@@ -52,7 +52,9 @@ async function createCover(cb: any) {
       canvas.toBlob(
         async (blobObj) => {
           if (blobObj) {
-            const result = await Qiniu.upload(blobObj, { bucket: 'xp-design', prePath: 'cover/user' })
+            // 上传封面到自建后端，回调返回完整 url
+            const file = new File([blobObj], `cover_${Date.now()}.jpg`, { type: 'image/jpeg' })
+            const result = await api.material.upload({ file, folder: 'cover/user' }, () => {})
             cb(result)
           }
         },

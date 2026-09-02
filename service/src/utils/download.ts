@@ -1,4 +1,13 @@
 /*
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ * Copyright (C) 2026 palxiao https://xpai.design
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ */
+/*
  * @Author: ShawnPhang
  * @Date: 2021-09-30 14:47:22
  * @Description: 下载图片（多标签页版本，不建议在低配置服务器中使用）
@@ -7,7 +16,7 @@
  */
 const isDev = process.env.NODE_ENV === 'development'
 const puppeteer = require('puppeteer')
-const images = require('images')
+const sharp = require('sharp')
 const { executablePath, releaseTime } = require('../configs.ts')
 const forceTimeOut = 60 // 强制超时时间，单位：秒
 let browser: typeof puppeteer = null
@@ -81,9 +90,12 @@ export const saveScreenshot = async (url: string, { path, width, height, thumbPa
     function compress() {
       // 压缩图片
       try {
-          images(path)
-            .size(+size || 300)
-            .save(thumbPath, { quality: +quality || 70 })
+          thumbPath &&
+            sharp(path)
+              .resize(+size || 300)
+              .jpeg({ quality: +quality || 70 })
+              .toFile(thumbPath)
+              .catch((err: Error) => console.log(err))
       } catch (err) {
         console.log(err)
       }

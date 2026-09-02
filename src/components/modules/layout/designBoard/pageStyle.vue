@@ -162,7 +162,6 @@ function finish(key: keyof TPageState, value: string | number) {
   })
 }
 async function uploadImgDone(img: TUploadDoneData) {
-  await api.material.addMyPhoto(img)
   pageStore.updatePageData({
     key: 'backgroundTransform',
     value: {},

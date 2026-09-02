@@ -1,4 +1,12 @@
 <!--
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ * Copyright (C) 2026 palxiao https://xpai.design
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
  * @Author: ShawnPhang
  * @Date: 2022-02-11 18:48:23
  * @Description: 照片图库 Form:Unsplash无版权图片
@@ -46,13 +54,14 @@ type TState = {
   loadDone: boolean
   page: number
   currentCategory: TCurrentCategory | null
-  types: []
+  types: { id?: number; cate?: string; name: string }[]
   showList: TGetImageListResult[][]
 }
 
 type TCurrentCategory = {
   name: string
   id?: number
+  cate?: string
 }
 
 const props = defineProps<TProps>()
@@ -73,13 +82,10 @@ let loading = false
 
 onMounted(async () => {
   if (state.types.length <= 0) {
-    // const types = await api.material.getKinds({ type: 4 })
-    state.types = [
-      { id: 1, name: '照片列表，自适应布局' },
-      { id: 2, name: '照片列表，自适应布局' },
-    ]
+    const categoryRes: any = await api.material.getAssetCategories('photos')
+    state.types = Array.isArray(categoryRes?.list) ? categoryRes.list : []
     for (const iterator of state.types) {
-      const { list } = await api.material.getImagesList({ cate: iterator.id, pageSize: 2 })
+      const { list } = await api.material.getImagesList({ cate: iterator.cate || iterator.id, pageSize: 2 })
       state.showList.push(list)
     }
   }
@@ -110,8 +116,9 @@ const getDataList = async () => {
   }
   loading = true
   state.page += 1
-  let { list = [], total } = await api.material.getImagesList({ cate: state.currentCategory?.id, page: state.page, pageSize: 30 })
+  let { list = [], total } = await api.material.getImagesList({ cate: state.currentCategory?.cate || state.currentCategory?.id, page: state.page, pageSize: 30 })
   list.length <= 0 ? (state.loadDone = true) : (state.recommendImgList = state.recommendImgList.concat(list))
+  if (list.length < 30 || (Number.isFinite(Number(total)) && state.recommendImgList.length >= Number(total))) state.loadDone = true
   setTimeout(() => {
     loading = false
   }, 100)

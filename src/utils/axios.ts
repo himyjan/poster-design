@@ -1,18 +1,17 @@
 /*
- * @Author: ShawnPhang
- * @Date: 2021-07-13 02:48:38
- * @Description: 本地测试用户身份写死
- * @LastEditors: ShawnPhang <https://m.palxp.cn>
- * @LastEditTime: 2024-04-03 20:56:23
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ * Copyright (C) 2026 palxiao https://xpai.design
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  */
 import axios, { AxiosRequestConfig, AxiosResponse, AxiosStatic } from 'axios'
 import app_config, { LocalStorageKey } from '@/config'
 import { useBaseStore, useUserStore } from '@/store/index';
 
 axios.defaults.timeout = 30000
-// axios.defaults.headers.authorization = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MTAwMDEsImV4cCI6MTc4ODU3NDc1MDU4NX0.L_t6DFD48Dm6rUPfgIgOWJkz18En1m_-hhMHcpbxliY';
-const defaultToken = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MTAwMDEsImV4cCI6MTc4ODU3NDc1MDU4NX0.L_t6DFD48Dm6rUPfgIgOWJkz18En1m_-hhMHcpbxliY';
-// const version = app_config.VERSION;
 const baseUrl = app_config.API_URL
 
 // 请求拦截器
@@ -26,10 +25,15 @@ axios.interceptors.request.use(
 
     if (config.method === 'get') {
       //  config.params = utils.extend(config.params, values)
-      config.params = Object.assign(config.params, values)
+      // Axios allows params to be omitted. Always merge into a fresh object;
+      // Object.assign(undefined, ...) throws before the request is sent.
+      config.params = Object.assign({}, config.params, values)
       // config.params = qs.stringify(config.params);
     } else {
-      config.data = Object.assign(config.data, values)
+      // 文件上传必须保留 FormData 实例，否则合并后会丢失 multipart 文件内容。
+      if (!(typeof FormData !== 'undefined' && config.data instanceof FormData)) {
+        config.data = Object.assign({}, config.data, values)
+      }
       //  config.data = utils.extend(config.data, values)
       // config.data = qs.stringify(config.data);
     }
@@ -90,7 +94,8 @@ const fetch = <T = any> (
     // store.commit('loading', '加载中..');
   }
 
-  const token = defaultToken//localStorage.getItem(LocalStorageKey.tokenKey)
+  // 仅使用本地登录 token，未登录则不携带 Authorization
+  const token = localStorage.getItem(LocalStorageKey.tokenKey)
   const headerObject: Record<string, any> = {}
   token && (headerObject.Authorization = token)
   

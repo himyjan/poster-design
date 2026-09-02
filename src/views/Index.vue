@@ -1,4 +1,12 @@
 <!--
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ * Copyright (C) 2026 palxiao https://xpai.design
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
  * @Author: ShawnPhang
  * @Date: 2023-09-18 17:34:44
  * @Description: 
@@ -19,14 +27,26 @@
           <el-divider direction="vertical" />
           <Folder @select="dealWith" ref="ref1"> <div class="operation-item"><i class="icon sd-wenjian" /> <span class="text" >文件</span></div> </Folder>
           <Helper @select="dealWith"> <div class="operation-item"><i class="icon sd-bangzhu" /> <span class="text" >帮助</span></div> </Helper>
+          <el-divider direction="vertical" />
+          <div class="operation-item" @click="openAiAssistant"><i class="icon sd-AIkoutu" /> <span class="text">AI 助手</span></div>
           <!-- <el-tooltip effect="dark" :show-after="300" :offset="0" content="标尺" placement="bottom">
             <i style="font-size: 20px" class="icon sd-biaochi operation-item" @click="changeLineGuides" />
           </el-tooltip> -->
           <el-divider direction="vertical" />
         </div>
         <HeaderOptions ref="optionsRef" v-model="state.isContinue" @change="optionsChange">
-          <!-- <el-button size="large" class="primary-btn" @click="dealWith('save')">{{ $t('header.save') }}</el-button> -->
+          <el-button size="large" class="primary-btn" plain @click="dealWith('save')">{{ $t('header.save') }}</el-button>
           <el-button ref="ref4" size="large" class="primary-btn" type="primary" @click="dealWith('download')">{{ $t('header.download') }}</el-button>
+          <template v-if="loginUser">
+            <span class="user-name">{{ loginUser.account }}</span>
+            <el-divider direction="vertical" />
+            <div class="operation-item" @click="openChangePassword"><span class="text">修改密码</span></div>
+            <el-divider direction="vertical" />
+            <div v-if="loginUser.role === 1" class="operation-item" @click="jump2admin"><span class="text">后台管理</span></div>
+            <el-divider v-if="loginUser.role === 1" direction="vertical" />
+            <div class="operation-item" @click="logout"><span class="text">退出</span></div>
+          </template>
+          <el-button v-else size="large" type="primary" plain @click="openLogin">登录 / 注册</el-button>
         </HeaderOptions>
       </div>
     </div>
@@ -63,6 +83,12 @@
     <Tour ref="tourRef" :steps="[ref1, ref2, ref3, ref4]" />
     <!-- 创建设计 -->
     <createDesign ref="createDesignRef" />
+    <!-- 登录 / 注册弹窗 -->
+    <login-dialog ref="loginDialogRef" />
+    <!-- 修改密码弹窗 -->
+    <ChangePassword ref="changePasswordRef" />
+    <!-- AI 助手 -->
+    <AiAssistant ref="aiAssistantRef" />
   </div>
 </template>
 
@@ -88,9 +114,43 @@ import { useCanvasStore, useControlStore, useHistoryStore, useWidgetStore, useGr
 import type { ButtonInstance } from 'element-plus'
 import Tour from './components/Tour.vue'
 import createDesign from '@/components/business/create-design'
+import loginDialog from '@/components/business/login-dialog/index.vue'
+import ChangePassword from '@/components/business/login-dialog/ChangePassword.vue'
+import AiAssistant from '@/components/business/ai-assistant'
 import multipleBoards from '@/components/modules/layout/multipleBoards'
 import useHistory from '@/common/hooks/history'
 useHistory()
+
+type TLoginUser = { account: string; role: number }
+const loginDialogRef = ref<InstanceType<typeof loginDialog>>()
+const changePasswordRef = ref<InstanceType<typeof ChangePassword>>()
+const loginUser = ref<TLoginUser | null>(JSON.parse(localStorage.getItem('xp_user') || 'null'))
+
+function openLogin() {
+  loginDialogRef.value?.open('login').then((result) => {
+    if (result) loginUser.value = { account: result.account, role: result.role }
+  })
+}
+
+/** 修改密码：成功后清除本地登录态，强制重新登录 */
+function openChangePassword() {
+  changePasswordRef.value?.open().then((result) => {
+    if (result === true) {
+      localStorage.removeItem('xp_user')
+      loginUser.value = null
+    }
+  })
+}
+
+function logout() {
+  localStorage.removeItem('xp_user')
+  localStorage.removeItem('xp_token')
+  loginUser.value = null
+}
+
+function jump2admin() {
+  window.location.href = './admin'
+}
 
 const ref1 = ref<ButtonInstance>()
 const ref2 = ref<ButtonInstance>()
@@ -133,6 +193,11 @@ const optionsRef = ref<typeof HeaderOptions | null>(null)
 const zoomControlRef = ref<typeof zoomControl | null>(null)
 const controlStore = useControlStore()
 const createDesignRef: Ref<typeof createDesign | null> = ref(null)
+const aiAssistantRef: Ref<typeof AiAssistant | null> = ref(null)
+
+function openAiAssistant() {
+  aiAssistantRef.value?.open()
+}
 
 const beforeUnload = function (e: Event): any {
   if (dHistoryStack.value.changes.length > 0) {
@@ -262,4 +327,15 @@ defineExpose({
 
 <style lang="less" scoped>
 @import url('@/assets/styles/design.less');
+.user-name {
+  display: flex;
+  align-items: center;
+  margin: 0 8px;
+  font-size: 14px;
+  color: #33353a;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 </style>

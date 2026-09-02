@@ -1,7 +1,7 @@
 <template>
   <div ref="pageDesignIndex">
     <div class="page-design-index-wrap">
-      <design-board class="page-design-wrap fixed-canvas" pageDesignCanvasId="page-design-canvas"></design-board>
+      <design-board class="page-design-wrap fixed-canvas" pageDesignCanvasId="page-design-canvas" :padding="0"></design-board>
     </div>
     <!-- 缩放控制 -->
     <zoom-control />
@@ -50,7 +50,10 @@ async function load() {
       id: id || tempid,
       type: Number(type)
     }
-    const { data, width, height } = await api.home[id ? 'getWorks' : 'getTempDetail'](postData)
+    const renderToken = typeof route.query.token === 'string' ? route.query.token : undefined
+    const { data, width, height } = id
+      ? await api.home.getWorks(postData, renderToken)
+      : await api.home.getTempDetail(postData)
     let content = JSON.parse(data)
     const isGroupTemplate = Number(type) == 1
 
@@ -155,6 +158,8 @@ async function load() {
 <style lang="less" scoped>
 @import url('@/assets/styles/design.less');
 .fixed-canvas {
+  min-width: 0 !important;
+  width: 100% !important;
   :deep(#page-design-canvas) {
     position: fixed !important;
     top: 0 !important;

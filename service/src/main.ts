@@ -1,9 +1,18 @@
 /*
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ * Copyright (C) 2026 palxiao https://xpai.design
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ */
+/*
  * @Author: ShawnPhang
  * @Date: 2022-02-01 13:41:59
  * @Description:
  * @LastEditors: ShawnPhang <https://m.palxp.cn>
- * @LastEditTime: 2024-11-14 17:36:17
+ * @LastEditTime: 2026-08-31 01:20:06
  */
 
 import express from 'express'
@@ -12,6 +21,8 @@ import fs from 'fs'
 import router from './control/router'
 import { filePath, servicePort } from './configs'
 import handleTimeout from './utils/timeout'
+import { initDB } from './db'
+import { restoreSeed } from './db/seed'
 
 const port = process.env.PORT || servicePort
 const app = express()
@@ -25,6 +36,8 @@ const createFolder = (folder: string) => {
   }
 }
 createFolder(filePath)
+restoreSeed()
+initDB()
 
 app.all('*', (req: any, res: any, next: any) => {
   res.header('Access-Control-Allow-Origin', '*')
@@ -36,7 +49,6 @@ app.all('*', (req: any, res: any, next: any) => {
 
 app.use('/static', setUploadContentType, express.static(process.cwd() + `/static/`))
 if (process.env.NODE_ENV === 'development') {
-  app.use('/store', setUploadContentType, express.static(process.cwd() + `/src/mock/assets`))
 }
 
 app.use(handleTimeout)
