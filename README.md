@@ -9,17 +9,17 @@
   <a href="https://hellogithub.com/repository/56a75cfc34da43549d2bb46dab305ba2" target="_blank"><img src="https://abroad.hellogithub.com/v1/widgets/recommend.svg?rid=56a75cfc34da43549d2bb46dab305ba2&claim_uid=fb0Nckng89FvyzP&theme=neutral" alt="Featured｜HelloGitHub" style="width: 250px; height: 54px;" width="250" height="54" /></a>
 </p>
 
-一个开箱即用，零开发可部署生产的 AI 海报编辑器、在线创意图片设计工具，简洁好用、易于开发，最初灵感是模仿稿定设计等产品。
+一个开箱即用、可零开发部署生产的开源 AI 海报设计器 / 在线图片设计工具：原生 DOM 画布编辑器，前端与服务端混合出图，附完整后台管理与接口，简洁好用、易于开发。
 
-全新开源版 2.0 增加了免费的 AI 功能，且相比旧版拥有完整的后台管理与接口，真正做到开箱即用，旧版请访问 mit-version 分支。
+适用于多种场景：海报图片生成、电商图、文章长图、视频/公众号封面等，助力轻松实现创意，迅速图文排版，「迅排」让设计高效又简单！
+
+<p align="center">
+<a href="https://design.palxp.cn/">更多功能访问 SaaS 官网</a> | <a href="https://plus.palxp.cn/">企业定制开发 / 私有化部署</a> | <a href="https://xp.palxp.cn/">项目文档（旧版）</a>
+</p>
 
 [![](https://xp.palxp.cn/images/2023-7-16-1689500112694.gif)](https://design.palxp.cn/)
 
-适用于多种场景：海报图片生成、电商分享图、文章长图、视频/公众号封面等，轻松实现创意，迅速完成图文排版，设计如此简单！
-
-<p align="center">
-<a href="https://design.palxp.cn/">访问迅排设计 SaaS 官网</a> | <a href="https://xp.palxp.cn/">项目文档(旧版)</a>
-</p>
+全新开源版 2.0 增加了免费的 AI 功能，且相比旧版拥有完整的后台管理与接口，真正做到开箱即用，旧版请访问 mit-version 分支。
 
 ### 开源版 2.0 部分预览
 
@@ -31,25 +31,17 @@
 | --- | --- |
 | <img width="1316" height="790" alt="image" src="https://github.com/user-attachments/assets/4f0a2c9c-1774-4263-aba7-f51fd20d9220" /> | <img width="1582" height="978" alt="image" src="https://github.com/user-attachments/assets/9ba2177e-2ea4-4d03-9f5f-cb54a85a7383" /> |
 
-<p align="center">
-<img width="1132" height="584" alt="image" src="https://github.com/user-attachments/assets/c7400975-4da1-424f-87f8-19152cbc5f4a" />
-</p>
-
 ### 项目特点
 
-- 交互与细节丰富，基础功能完善
-- 原生 DOM 画布编辑器，操作体验丝滑
-- 前端 + 服务端混合出图，维护门槛低，极易上手开发
+- 界面美观细节丰富，基础功能完善非Demo项目可比
+- 原生 DOM 画布 + 服务端出图，操作体验丝滑，开发门槛低极易上手
 - 支持导入 PSD 设计文件解析辅助生成模板
 - AI 抠图工具一键去除背景，支持画笔修补擦除
-- 主要技术栈：Vue3 、Vite5 、Pinia 、TypeScript
-- 运行时与框架：Node.js + Express + ElementPlus
-- 图片合成：Puppeteer（后端）内置并发队列与熔断阈值、Html2canvas（前端）
-- 图像处理：sharp
-- 数据库：better-sqlite3（内嵌 SQLite，DB：`service/data/poster.db`，WAL 模式）
-- 上传解析：body-parser、multiparty
+- 主要技术栈与框架：Vue3 、Vite5 、Pinia 、TypeScript，Node.js + Express + ElementPlus
+- 图片合成：Puppeteer（后端）、Html2canvas（前端），图像处理：sharp
+- 数据库：better-sqlite3（内嵌 SQLite，DB：`service/data/poster.db`）
 
-### 快速开始
+### 本地开发
 
 ```
 git clone https://github.com/palxiao/poster-design.git
@@ -58,14 +50,13 @@ npm run prepared
 npm run serve
 ```
 
-输入网址 http://127.0.0.1:5173/ 访问站点，如遇失败请拆开命令运行，更多详情[参阅文档(旧)](https://xp.palxp.cn/#/articles/1689319644311)。
+输入网址 http://127.0.0.1:5173/ 访问站点（如中途失败请拆开命令运行），更多详情[参阅文档(旧)](https://xp.palxp.cn/#/articles/1689319644311)。
 
-管理后台：http://127.0.0.1:5173/admin（仅管理员可访问）
-默认管理员账号：admin、密码：123456
+管理后台：http://127.0.0.1:5173/admin（管理员默认账号 `admin / 123456`）
 
 ### 后端 & 图片生成
 
-本项目的后端服务（位于 [/service](https://github.com/palxiao/poster-design/tree/main/service)），提供海报截图、文件上传、用户/管理员认证、模板与素材存取等接口。
+本项目的后端服务（位于 [/service](https://github.com/palxiao/poster-design/tree/main/service)）。
 
 生成的图片与用户上传文件落盘到 `static/` 目录后，由服务以 `/static/*` 路径对外暴露。管理后台相关接口（模板/素材/用户图片/分类管理）由 `requireAdmin` 中间件鉴权保护。
 
@@ -76,28 +67,46 @@ npm run serve
 1. 构建前端：根目录执行 `npm run build`，产物在 `dist/`（AI 抠图模型 `public/models/` 与 onnxruntime 运行时 `public/ort/` 会一并拷入产物，随仓库分发，无需额外下载）。
 2. 启动后端：`service` 目录安装依赖后执行 `npm run build && npm run serverstart`（pm2），或 `npm run serve` 直接运行。
 3. 反向代理：前端与后端同源部署，将 `/api`、`/design`、`/static` 转发到后端端口（默认 `7001`）。若前后端不同源，构建时设置环境变量 `VITE_API_URL=https://你的后端地址` 即可。
-4. 安全事项：
-   - 管理员默认账号 `admin / 123456`，**首次登录后请立即修改密码**；
-   - 登录态使用 JWT，生产环境务必通过环境变量配置服务端密钥（见 `service/src/configs.ts`），不要使用默认值；
-   - SQLite 为 WAL 模式，备份/迁移时请将 `poster.db`、`poster.db-shm`、`poster.db-wal` 三个文件一并处理，或先停服后再拷贝。
 
-### `Star` 仓库
+------------
 
-开源不易，别忘了给本项目点个 **Star** ~ 您的支持是对开源作者最大的鼓励 :heart:
+### 迅排 Plus：企业版与私有化部署
 
-[![Star History Chart](https://api.star-history.com/chart?repos=palxiao/poster-design&type=date&legend=top-left&sealed_token=9jTOGHY5QQTM4AMJnl_kl2k_gpBHryAWKtzE0LxROivWVyq_NkxYrv90TUQ1rimbI60wmvUcFLzJ3Rbk3fcaduZP9kK1VWymajOMXjGZva0czGEn8lYtgehwqDB7Zhw_ibK7YGCPD9F6-gb-2UKc0MRzVuyCBqQSfAeXx8wLFwT8AANF2LjR9-hGzFuI)](https://www.star-history.com/?repos=palxiao%2Fposter-design&type=date&legend=top-left)
+本仓库是**开源版**，已包含完整的编辑器、后台管理与 AI 能力（见上方功能清单），无需付费即可使用、二开与学习。
 
-每一个 Star 都是我不断前进的动力 :heart:
+如果您需要更全面的企业交付形态，可以了解：[迅排 Plus](https://plus.palxp.cn/)，我们提供专业的付费技术服务。
 
-[![Stargazers](https://bytecrank.com/nastyox/reporoster/php/stargazersSVG.php?user=palxiao&repo=poster-design)](https://github.com/palxiao/poster-design/stargazers)
+<img width="1024" height="1024" alt="技术服务" src="https://github.com/user-attachments/assets/118e2e46-aed6-4631-a003-61c1c5262899" />
 
-### 交流群
+| 维度 | 开源版（本仓库） | 迅排 Plus |
+| --- | --- | --- |
+| 适用对象 | 个人开发者、学习研究、内部二次开发 | 企业业务团队、需对外交付的设计站点 |
+| 部署方式 | 自部署（详见「部署上线」） | 企业私有化部署 |
+| 交付与开发 | 社区 Issue 交流 + 自行二开 | 源码交付、定制开发 |
+| 支持与保障 | 社区支持 | 专属技术服务与长期维护 |
+| 客户基础 | 5000+ 开发者的选择 | 已服务 20+ 中小企业与上市公司 |
 
-了解项目最新动态、交流前端全栈技术：欢迎关注公众号《品味前端》，回复“加群”或添加作者微信。
+「迅排」过去数年时间潜心打磨编辑器项目，产品已历经大量实际验证并广受好评！
 
-<img style="width: 380px;" src="https://xp.palxp.cn/images/2024-3-1-1709306365949.png" />
+| PSD 解析能力拔群，效果精准还原 | 让客户的设计资产重燃商业价值 |
+| --- | --- |
+| <img width="1720" height="1040" alt="image" src="https://github.com/user-attachments/assets/d2b2baa5-aa86-45fa-b6ae-1f69f609ea8d" /> | <img width="1646" height="1016" alt="image" src="https://github.com/user-attachments/assets/22a55b85-75f6-4834-84c2-5a786cbffaa5" /> |
 
-### 附功能清单
+| 实物定制、印刷设计类商城开发 | 一件DIY设计下单，覆盖各种品类 |
+| --- | --- |
+| <img width="1474" height="1088" alt="image" src="https://github.com/user-attachments/assets/f9bfe2d2-0c5e-4a70-89a1-d40c62969cd7" /> | <img width="1299" height="941" alt="image" src="https://github.com/user-attachments/assets/ba67f67e-c706-4d3a-a7f0-c0eb54d968a9" /> |
+
+| 图片一键转成可编辑模板 | 各类 AI 工具，聊天出图 |
+| --- | --- |
+| <img width="1080" height="729" alt="image" src="https://github.com/user-attachments/assets/2b1d2aaf-1416-4b9f-8c1f-fbd9cd7ff5b4" /> | <img width="1080" height="909" alt="image" src="https://github.com/user-attachments/assets/11772a64-9667-41e4-adf6-109459d19759" /> |
+
+若您有设计资源、渠道优势，或怀揣任何可产品化的想法，我们都期待能与您共商合作：
+
+<img style="width: 180px;" alt="联系方式" src="https://plus.palxp.cn/assets/images/contact/wx.jpg" />
+
+--------------
+
+### （附录）开源版功能清单
 
 #### 基础设计功能
 
@@ -201,12 +210,26 @@ npm run serve
 
 2. 文件上传接口支持 multipart/form-data 图片及字体文件上传，文件保存到 `static/` 目录。
 
-项目使用/参考了一些优秀开源项目，感谢这些开源项目作者所做出的杰出贡献，包括但不限于：
+本项目使用或参考了一些优秀开源项目，感谢这些开源项目做出的杰出贡献，包括但不限于：
 
 - [moveable](https://github.com/daybrush/moveable): 提供了画布中选择、拖动缩放等能力
 - [html2canvas](https://github.com/niklasvh/html2canvas): 前端出图的简单方案
 - [qr-code-styling](https://qr-code-styling.com/): 生成风格化二维码
-- [rembg](https://github.com/danielgatis/rembg) / [rembg-web](https://github.com/bunnio/rembg-web): 浏览器端 AI 自动抠图（onnxruntime-web + u2netp 轻量模型，约 4.7MB，首次使用时自动加载，无需后端服务）
+- [rembg](https://github.com/danielgatis/rembg) / [rembg-web](https://github.com/bunnio/rembg-web): 浏览器端 AI 自动抠图（onnxruntime-web + u2netp 轻量模型，约 4.7MB）
+
+### `Star` 仓库
+
+开源不易，看到这别忘了给本项目点个 **Star** ~ 您的支持是对开源作者最大的鼓励 :heart:
+
+<a href="https://www.star-history.com/?repos=palxiao%2Fposter-design&type=date&legend=top-left" target="_blank">
+  <img src="https://api.star-history.com/chart?repos=palxiao/poster-design&type=date&legend=top-left&sealed_token=9jTOGHY5QQTM4AMJnl_kl2k_gpBHryAWKtzE0LxROivWVyq_NkxYrv90TUQ1rimbI60wmvUcFLzJ3Rbk3fcaduZP9kK1VWymajOMXjGZva0czGEn8lYtgehwqDB7Zhw_ibK7YGCPD9F6-gb-2UKc0MRzVuyCBqQSfAeXx8wLFwT8AANF2LjR9-hGzFuI" width="480" alt="Star History Chart" />
+</a>
+
+### 交流群
+
+欢迎关注作者公众号《品味前端》，回复“加群”或添加作者微信。
+
+<img src="https://xp.palxp.cn/images/2024-3-1-1709306365949.png" />
 
 ### 社区合作伙伴
 
@@ -216,8 +239,4 @@ npm run serve
 
 ### `LICENSE`
 
-本项目遵循 [AGPL-3.0](https://www.gnu.org/licenses/agpl-3.0.zh-cn.html) 开源协议，[中文版开源许可说明](https://github.com/palxiao/poster-design?tab=AGPL-3.0-1-ov-file)。
-
-### 技术支持
-
-开源版作为迅排设计早期项目底座，功能比较有限，只适合二开和学习研究。如果您有明确的业务需求，想快速开发部署一个更完善、稳定且强大的在线设计站点，可以了解：[迅排 Plus 服务](https://plus.palxp.cn/)，我们提供定制开发、企业私有化部署等全方位技术服务。过去迅排花费了数年时间潜心打磨编辑器项目，已服务了 20+ 中小企业和上市公司，产品经历大量实际验证，且广受好评，诚挚欢迎洽谈合作。
+本项目遵循 [AGPL-3.0](https://www.gnu.org/licenses/agpl-3.0.zh-cn.html) 开源协议，[中文版开源许可说明](https://github.com/palxiao/poster-design/blob/main/LICENSE-ZH)。

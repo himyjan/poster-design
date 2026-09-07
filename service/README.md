@@ -38,6 +38,9 @@ ERROR: Failed to set up Chromium xxx! Set "PUPPETEER_SKIP_DOWNLOAD" env variable
 2. 打包后项目根目录 `dist/` 文件夹上传服务器，并执行 `npm install` 安装依赖
 3. 运行 `pm2 start dist/server.js` 启动并守护服务
 
+- 登录态使用 JWT，生产环境务必通过环境变量配置服务端密钥（见 `service/src/configs.ts`），不要使用默认值；
+- SQLite 为 WAL 模式，备份/迁移时请将 `poster.db`、`poster.db-shm`、`poster.db-wal` 三个文件一并处理，或先停服后再拷贝。
+
 ### 配置说明
 
 配置文件 `src/config.ts` 配置项说明：
