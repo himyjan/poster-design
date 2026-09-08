@@ -8,7 +8,7 @@
  * (at your option) any later version.
 -->
 <template>
-  <el-table :data="rows" size="small" stripe>
+  <el-table class="admin-table" :data="rows" size="small" stripe v-loading="loading">
     <el-table-column prop="id" label="ID" width="70" />
     <el-table-column label="封面" width="90">
       <template #default="{ row }">
@@ -26,10 +26,19 @@
 
 <script lang="ts" setup>
 import { ElTable, ElTableColumn, ElImage, ElTag, ElButton } from 'element-plus'
-defineProps<{ rows: any[] }>()
+withDefaults(defineProps<{ rows: any[]; loading?: boolean }>(), { loading: false })
 defineEmits<{ delete: [row: any]; remove: [row: any]; edit: [row: any]; category: [row: any] }>()
 </script>
 
 <style lang="less" scoped>
-.empty-cover { display: inline-flex; width: 64px; height: 36px; align-items: center; justify-content: center; color: #a8abb2; background: #f5f7fa; font-size: 12px; }
+.empty-cover {
+  display: inline-flex;
+  width: 64px;
+  height: 36px;
+  align-items: center;
+  justify-content: center;
+  color: @color-ink-hint;
+  background: @color-canvas-page;
+  font-size: 12px;
+}
 </style>

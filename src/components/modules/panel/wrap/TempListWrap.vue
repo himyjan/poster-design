@@ -18,7 +18,7 @@
     <search-header v-model="state.searchKeyword" @change="cateChange" />
 
     <el-divider v-show="state.title" style="margin-top: 1.7rem" content-position="left">
-      <span style="font-weight: bold">{{ state.title }}</span>
+      <span style="font-weight: 600">{{ state.title }}</span>
     </el-divider>
 
     <ul ref="listRef" v-infinite-scroll="load" class="infinite-list" :infinite-scroll-distance="150" style="overflow: auto">

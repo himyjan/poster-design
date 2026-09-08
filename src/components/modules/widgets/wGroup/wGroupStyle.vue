@@ -198,7 +198,7 @@ function alignAction(item: TIconItemSelectData) {
   margin-bottom: 10px;
 }
 .ungroup {
-  background-color: #3b74f1;
+  background-color: @color-primary;
   color: #ffffff;
   cursor: pointer;
   margin: 10px;

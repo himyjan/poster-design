@@ -104,7 +104,7 @@ defineExpose({
 .text {
   margin: 2rem 0;
   font-size: 20px;
-  font-weight: bold;
+  font-weight: 600;
   width: 100%;
   text-align: center;
   color: #333333;
@@ -113,7 +113,7 @@ defineExpose({
   font-weight: 400;
   font-size: 16px;
   cursor: pointer;
-  color: #3771e5;
+  color: @color-primary;
 }
 .info {
   font-weight: 400;

@@ -232,7 +232,7 @@ export default defineComponent({
 }
 
 .w-group {
-  font-weight: bold;
+  font-weight: 600;
 }
 // icons
 .sd-jiesuo,

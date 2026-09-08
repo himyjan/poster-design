@@ -173,7 +173,7 @@
   .square {
     background-color: #ffffff;
     height: 10px;
-    outline: 1px solid #3b74f1;
+    outline: 1px solid @color-primary;
     position: absolute;
     transform: translateX(-50%) translateY(-50%);
     width: 10px;

@@ -7,8 +7,8 @@
 @width2: 100%;
 @height2: 54px;
 
-@canvasBG: #f8f8f8;
-@pageBG: #f0f2f5;
+@canvasBG: @color-canvas-artboard;
+@pageBG: @color-canvas-page;
 @canvasDeepBG: #000;
 
 .page-design-bg-color {
@@ -33,7 +33,7 @@
     position: relative;
     width: @width2;
     .top-nav-wrap {
-      border-bottom: 1px solid rgba(202, 119, 119, 0.1);
+      border-bottom: 1px solid @color-hairline-soft;
       align-items: center;
       background-color: @color-main;
       display: flex;
@@ -50,7 +50,7 @@
           // font-weight: bold;
           cursor: pointer;
           letter-spacing: 2px;
-          color: #333;
+          color: @color-ink;
           font-size: 22px;
           font-family: TitleFont, PingFangSC-Semibold, PingFang SC;
         }
@@ -63,7 +63,7 @@
             align-items: center;
             .icon {
               // font-size: 18px;
-              color: #333333;
+              color: @color-ink;
             }
             .iconfont {
               font-size: 14px;
@@ -76,7 +76,7 @@
           }
           .disable {
             cursor: not-allowed;
-            color: #c2c2c2;
+            color: @color-ink-disabled;
           }
         }
       }

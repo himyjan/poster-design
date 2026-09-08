@@ -6,10 +6,10 @@
   font-display: swap;
 }
 body {
-  --el-color-primary: #2254f4;
+  /* --el-color-primary 已移至 tokens.less 的 :root，勿在此重复定义 */
   -moz-osx-font-smoothing: grayscale;
   -webkit-font-smoothing: antialiased;
-  color: #333333;
+  color: @color-ink;
   font-family: Hiragino Sans GB, Hiragino Sans GB W3, Arial, Microsoft Yahei, STHeiti, sans-serif;
   overflow: hidden;
 }
@@ -32,7 +32,7 @@ default;
   box-sizing: border-box;
   border-width: 0;
   border-style: solid;
-  border-color: #e5e7eb;
+  border-color: @color-hairline;
   // font-size: 14px;
   // scrollbar-width: none; /* 火狐滚动条无法自定义宽度，只能通过此属性使滚动条宽度变细 */
   -ms-overflow-style: none; /* 隐藏滚动条（在IE和Edge两个浏览器中很难更改样式，固采取隐藏方式） */

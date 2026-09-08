@@ -95,7 +95,7 @@ function openImageCutout() {
   position: relative;
   font-size: 16px;
   color: #333333;
-  font-weight: bold;
+  font-weight: 600;
   display: flex;
   align-items: center;
   user-select: none;

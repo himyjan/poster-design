@@ -99,7 +99,7 @@ function selectItem(item: TIconItemSelectData) {
     }
     .list-item.active {
       color: @main-color;
-      font-weight: bold;
+      font-weight: 600;
       // color: #ffffff;
     }
   }

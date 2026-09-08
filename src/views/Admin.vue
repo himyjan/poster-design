@@ -8,171 +8,218 @@
  * (at your option) any later version.
 -->
 <template>
-  <div class="admin-page">
-    <div class="admin-panel">
-      <div class="admin-header">
-        <span>后台管理</span>
-        <el-button size="small" @click="jump2home">返回首页</el-button>
-      </div>
+  <div class="admin-shell">
+    <AdminSidebar :active="activeTab" :user="adminUser" @select="onSelectTab" @logout="onLogout" />
 
-      <div class="admin-summary">
-        <div class="summary-card">
-          <span class="summary-label">模板</span>
-          <strong>{{ templateCount }}</strong>
-        </div>
-        <div class="summary-card">
-          <span class="summary-label">组件</span>
-          <strong>{{ componentCount }}</strong>
-        </div>
-        <div class="summary-card">
-          <span class="summary-label">用户图片</span>
-          <strong>{{ userImages.length }}</strong>
-        </div>
-        <div class="summary-card">
-          <span class="summary-label">字体</span>
-          <strong>{{ fonts.length }}</strong>
-        </div>
-      </div>
+    <div class="admin-main">
+      <AdminTopbar :title="pageMeta.title" :description="pageMeta.description" @home="jump2home" />
 
-      <el-tabs v-model="activeTab" @tab-change="loadTab">
-        <el-tab-pane label="模板" name="templates">
-          <el-tabs v-model="templateType" type="card">
-            <el-tab-pane label="模板管理" name="templates-list">
-              <div class="tab-toolbar">
-                <span class="tab-description">管理可直接使用的完整设计模板</span>
-                <el-button type="primary" size="small" plain @click="openPSDImport()">导入 PSD 创建模板</el-button>
-                <el-button size="small" :loading="loading" @click="loadTab">刷新</el-button>
-              </div>
-              <AdminTemplateTable :rows="templateRows" @delete="onDelTemplate" @remove="onRemoveTemplate" @edit="onEditTemplate" @category="openCategoryEditor" />
-            </el-tab-pane>
-            <el-tab-pane label="组件管理" name="components-list">
-              <div class="tab-toolbar">
-                <span class="tab-description">管理可组合到画布中的设计组件</span>
-                <el-button type="primary" size="small" plain @click="openPSDImport(1)">导入 PSD 创建组件</el-button>
-                <el-button size="small" :loading="loading" @click="loadTab">刷新</el-button>
-              </div>
-              <AdminTemplateTable :rows="componentRows" @delete="onDelTemplate" @remove="onRemoveTemplate" @edit="onEditTemplate" @category="openCategoryEditor" />
-            </el-tab-pane>
-          </el-tabs>
-        </el-tab-pane>
-        <el-tab-pane label="素材管理" name="materials-assets">
-          <div class="tab-toolbar"><el-input v-model="assetQuery.search" size="small" placeholder="搜索素材" style="width: 220px" @keyup.enter="loadTab" /><el-button size="small" @click="loadTab">搜索</el-button><el-button type="primary" size="small" @click="openAssetDialog('materials')">新增上传</el-button></div><el-table :data="materialAssets" size="small" v-loading="loading"><el-table-column prop="category" label="分组" width="120" /><el-table-column prop="type" label="元素类型" width="100" /><el-table-column prop="title" label="名称" min-width="180" /><el-table-column prop="url" label="地址" min-width="280" show-overflow-tooltip /><el-table-column label="操作" width="110"><template #default="{ row }"><el-button type="primary" size="small" link @click="openAssetDialog('materials', row)">编辑</el-button><el-button type="danger" size="small" link @click="onDeleteAsset('materials', row)">删除</el-button></template></el-table-column></el-table>
-        </el-tab-pane>
-        <el-tab-pane label="照片管理" name="photos-assets">
-          <div class="tab-toolbar"><el-input v-model="assetQuery.search" size="small" placeholder="搜索照片" style="width: 220px" @keyup.enter="loadTab" /><el-button size="small" @click="loadTab">搜索</el-button><el-button type="primary" size="small" @click="openAssetDialog('photos')">新增上传</el-button></div><el-table :data="photoAssets" size="small" v-loading="loading">
-<el-table-column prop="categoryName" label="分类" width="120" />
-            <el-table-column prop="url" label="地址" min-width="280" show-overflow-tooltip />
-             <el-table-column prop="title" label="名称" width="120" />
-             <el-table-column label="操作" width="110"><template #default="{ row }"><el-button type="primary" size="small" link @click="openAssetDialog('photos', row)">编辑</el-button><el-button type="danger" size="small" link @click="onDeleteAsset('photos', row)">删除</el-button></template></el-table-column></el-table>
-        </el-tab-pane>
+      <main class="admin-body">
+        <!-- 总览：平台内容规模 + 常用管理入口 -->
+        <section v-if="activeTab === 'overview'" class="overview-pane">
+          <div v-loading="loading" class="overview-stats">
+            <StatCard
+              v-for="stat in overviewStats"
+              :key="stat.key"
+              :label="stat.label"
+              :value="stat.value"
+              :icon="stat.icon"
+              :hint="stat.hint"
+              @go="onStatGo(stat)"
+            />
+          </div>
 
-         <el-tab-pane label="分类管理" name="categories">
-          <div class="tab-toolbar"><el-radio-group v-model="categoryTab" size="small" @change="loadTab"><el-radio-button label="template-categories">模板分类</el-radio-button><el-radio-button label="materials">素材分类</el-radio-button><el-radio-button label="photos">照片分类</el-radio-button></el-radio-group></div>
-          <template v-if="categoryTab === 'template-categories'"><div class="tab-toolbar"><el-radio-group v-model="templateCategoryType" size="small" @change="loadTab"><el-radio-button :value="0">模板</el-radio-button><el-radio-button :value="1">组件</el-radio-button></el-radio-group><el-input v-model="newTemplateCategory.name" size="small" placeholder="分类名称" style="width: 180px" /><el-button type="primary" size="small" @click="addTemplateCategory">新增分类</el-button></div><el-table :data="templateCategories" size="small" stripe v-loading="loading"><el-table-column prop="id" label="ID" width="80" /><el-table-column prop="name" label="分类名称" min-width="180" /><el-table-column prop="sort" label="排序" width="90" /><el-table-column label="操作" width="150"><template #default="{ row }"><el-button type="primary" size="small" link @click="onRenameTemplateCategory(row)">重命名</el-button><el-button type="danger" size="small" link @click="onDelTemplateCategory(row)">删除</el-button></template></el-table-column></el-table></template>
-          <template v-else-if="categoryTab === 'materials'"><div class="tab-toolbar"><el-button type="primary" size="small" @click="onAddCategory('materials')">新增分类</el-button></div><el-table :data="materialCates" size="small" v-loading="loading"><el-table-column prop="id" label="ID" width="80" /><el-table-column prop="name" label="分类名称" min-width="220" /><el-table-column prop="count" label="数量" width="100" /><el-table-column label="操作" width="150"><template #default="{ row }"><el-button type="primary" size="small" link @click="onRenameCategory('materials', row)">重命名</el-button><el-button type="danger" size="small" link @click="onDelCategory('materials', row)">删除</el-button></template></el-table-column></el-table></template>
-          <template v-else><div class="tab-toolbar"><el-button type="primary" size="small" @click="onAddCategory('photos')">新增分类</el-button></div><el-table :data="photoCates" size="small" v-loading="loading"><el-table-column prop="id" label="ID" width="80" /><el-table-column prop="cate" label="分类键" width="150" /><el-table-column prop="name" label="分类名称" min-width="180" /><el-table-column prop="count" label="数量" width="100" /><el-table-column label="操作" width="150"><template #default="{ row }"><el-button type="primary" size="small" link @click="onRenameCategory('photos', row)">重命名</el-button><el-button type="danger" size="small" link @click="onDelCategory('photos', row)">删除</el-button></template></el-table-column></el-table></template>
-        </el-tab-pane>
+          <section class="pane">
+            <h3 class="pane-title">常用操作</h3>
+            <div class="quick-actions">
+              <QuickAction :icon="Upload" name="导入 PSD 创建模板" desc="在新窗口打开 PSD 导入页" @go="openPSDImport()" />
+              <QuickAction :icon="Upload" name="导入 PSD 创建组件" desc="导入的图层将作为可复用组件" @go="openPSDImport(1)" />
+              <QuickAction :icon="EditPen" name="新增字体" desc="上传 woff 文件后编辑器即可选用" @go="openFontDialog()" />
+              <QuickAction :icon="MagicStick" name="配置 AI 能力" desc="开启文案生成、文生图与智能配色" @go="onSelectTab('ai-settings')" />
+            </div>
+          </section>
+        </section>
 
-        <!-- 旧分类页已合并到分类管理 -->
-        <el-tab-pane v-if="false" label="素材分类" name="materials-old" />
-
-        <el-tab-pane v-if="false" label="模板分类" name="template-categories">
-          <div class="tab-toolbar">
-            <el-radio-group v-model="templateCategoryType" size="small" @change="loadTab">
-              <el-radio-button :value="0">模板分类</el-radio-button>
-              <el-radio-button :value="1">组件分类</el-radio-button>
+        <!-- 模板与组件 -->
+        <section v-else-if="activeTab === 'templates'" class="pane">
+          <div class="pane-toolbar">
+            <el-radio-group v-model="templateType" size="small">
+              <el-radio-button value="templates-list">模板</el-radio-button>
+              <el-radio-button value="components-list">组件</el-radio-button>
             </el-radio-group>
-            <el-input v-model="newTemplateCategory.name" size="small" placeholder="分类名称，如节日海报" style="width: 180px" />
-            <el-button type="primary" size="small" @click="addTemplateCategory">新增分类</el-button>
-            <el-button size="small" :loading="loading" @click="loadTab">刷新</el-button>
+            <span class="toolbar-spacer"></span>
+            <el-button type="primary" size="small" plain @click="openPSDImport(templateType === 'components-list' ? 1 : undefined)">
+              <el-icon><Upload /></el-icon>
+              {{ templateType === 'components-list' ? '导入 PSD 创建组件' : '导入 PSD 创建模板' }}
+            </el-button>
+            <el-button size="small" :loading="loading" @click="loadTab">
+              <el-icon><Refresh /></el-icon>
+              刷新
+            </el-button>
           </div>
-          <el-table :data="templateCategories" size="small" stripe v-loading="loading">
-            <el-table-column prop="id" label="ID" width="80" />
-            <el-table-column prop="name" :label="templateCategoryType === 0 ? '模板分类名称' : '组件分类名称'" min-width="180" />
-            <el-table-column prop="sort" label="排序" width="90" />
-            <el-table-column label="操作" width="90">
-              <template #default="{ row }"><el-button type="primary" size="small" link @click="onRenameTemplateCategory(row)">重命名</el-button><el-button type="danger" size="small" link @click="onDelTemplateCategory(row)">删除</el-button></template>
-            </el-table-column>
-          </el-table>
-        </el-tab-pane>
+          <AdminTemplateTable
+            :rows="templateType === 'components-list' ? componentRows : templateRows"
+            :loading="loading"
+            @delete="onDelTemplate"
+            @remove="onRemoveTemplate"
+            @edit="onEditTemplate"
+            @category="openCategoryEditor"
+          />
+        </section>
 
-        <el-tab-pane v-if="false" label="照片分类" name="photos">
-          <div class="tab-toolbar"><span class="tab-description">管理照片分类，分类内容由照片接口维护</span><el-button type="primary" size="small" @click="onAddCategory('photos')">新增分类</el-button><el-button size="small" :loading="loading" @click="loadTab">刷新</el-button></div>
-          <el-table :data="photoCates" size="small" v-loading="loading">
-            <el-table-column prop="cate" label="分类名" min-width="140" />
-            <el-table-column prop="count" label="数量" width="100" />
-            <el-table-column label="操作" width="90">
-              <template #default="{ row }">
-                <el-button type="primary" size="small" link @click="onRenameCategory('photos', row)">重命名</el-button>
-                <el-button type="danger" size="small" link @click="onDelCategory('photos', row)">删除</el-button>
-              </template>
-            </el-table-column>
-          </el-table>
-        </el-tab-pane>
-
-        <el-tab-pane label="用户图片" name="images">
-          <el-table :data="userImages" size="small" v-loading="loading">
-            <el-table-column prop="id" label="ID" width="70" />
-            <el-table-column label="预览" width="90">
-              <template #default="{ row }">
-                <el-image :src="row.url" :preview-src-list="[row.url]" fit="cover" style="width: 64px; height: 36px" preview-teleported />
-              </template>
-            </el-table-column>
-            <el-table-column label="尺寸" width="110">
-              <template #default="{ row }">{{ row.width }} × {{ row.height }}</template>
-            </el-table-column>
-            <el-table-column prop="created_at" label="上传时间" width="170" />
-            <el-table-column label="操作" width="90">
-              <template #default="{ row }">
-                <el-button type="danger" size="small" link @click="onDelUserImage(row)">删除</el-button>
-              </template>
-            </el-table-column>
-          </el-table>
-        </el-tab-pane>
-
-        <el-tab-pane label="用户管理" name="users">
-          <div class="tab-toolbar">
-            <span class="tab-description">仅展示账号基本信息，密码等敏感字段不会返回</span>
-            <el-button size="small" :loading="loading" @click="loadTab">刷新</el-button>
+        <!-- 素材管理 -->
+        <section v-else-if="activeTab === 'materials'" class="pane">
+          <div class="pane-toolbar">
+            <el-input
+              v-model="assetQuery.search"
+              size="small"
+              clearable
+              placeholder="搜索素材名称或地址"
+              class="search-input"
+              @keyup.enter="reloadFromPage1"
+              @clear="reloadFromPage1"
+            />
+            <el-button size="small" @click="reloadFromPage1">搜索</el-button>
+            <span class="toolbar-spacer"></span>
+            <el-button type="primary" size="small" @click="openAssetDialog('materials')">
+              <el-icon><Plus /></el-icon>
+              新增上传
+            </el-button>
           </div>
-          <el-table :data="users" size="small" stripe v-loading="loading">
-            <el-table-column prop="id" label="ID" width="80" />
-            <el-table-column prop="account" label="账号" min-width="180" show-overflow-tooltip />
-            <el-table-column label="角色" width="100">
+          <el-table class="admin-table" :data="materialAssets" size="small" stripe v-loading="loading">
+            <el-table-column prop="category" label="分组" width="150" />
+            <el-table-column prop="type" label="元素类型" width="120" />
+            <el-table-column prop="title" label="名称" min-width="180" show-overflow-tooltip />
+            <el-table-column prop="url" label="地址" min-width="280" show-overflow-tooltip />
+            <el-table-column label="操作" width="120" fixed="right">
               <template #default="{ row }">
-                <el-tag :type="row.role === 1 ? 'danger' : 'info'" size="small">{{ row.role === 1 ? '管理员' : '普通用户' }}</el-tag>
-              </template>
-            </el-table-column>
-            <el-table-column prop="created_at" label="注册时间" width="180" />
-            <el-table-column label="操作" width="90" fixed="right">
-              <template #default="{ row }">
-                <el-button v-if="row.role !== 1" type="danger" size="small" link @click="onDelUser(row)">删除</el-button>
-                <span v-else class="muted-text">受保护</span>
+                <el-button type="primary" size="small" link @click="openAssetDialog('materials', row)">编辑</el-button>
+                <el-button type="danger" size="small" link @click="onDeleteAsset('materials', row)">删除</el-button>
               </template>
             </el-table-column>
           </el-table>
-        </el-tab-pane>
+        </section>
 
-        <el-tab-pane label="用户作品" name="designs">
-          <div class="tab-toolbar"><span class="tab-description">查看用户保存的作品，不展示作品编辑数据</span><el-button size="small" :loading="loading" @click="loadTab">刷新</el-button></div>
-          <el-table :data="designs" size="small" stripe v-loading="loading">
-            <el-table-column prop="id" label="ID" width="70" />
-            <el-table-column prop="account" label="用户" width="140" />
-            <el-table-column label="封面" width="90"><template #default="{ row }"><el-image v-if="row.cover" :src="row.cover" :preview-src-list="[row.cover]" fit="cover" style="width: 64px; height: 36px" preview-teleported /><span v-else class="muted-text">暂无</span></template></el-table-column>
-            <el-table-column prop="title" label="标题" min-width="180" show-overflow-tooltip />
-            <el-table-column label="尺寸" width="110"><template #default="{ row }">{{ row.width }} × {{ row.height }}</template></el-table-column>
-            <el-table-column prop="created_at" label="创建时间" width="170" />
-            <el-table-column label="操作" width="90"><template #default="{ row }"><el-button type="danger" size="small" link @click="onDelDesign(row)">删除</el-button></template></el-table-column>
-          </el-table>
-        </el-tab-pane>
-
-        <el-tab-pane label="字体" name="fonts">
-          <div class="tab-toolbar">
-            <el-input v-model="fontQuery.search" size="small" clearable placeholder="搜索字体名称 / value" style="width: 240px" @keyup.enter="loadTab" @clear="loadTab" />
-            <el-button size="small" @click="loadTab">搜索</el-button>
-            <el-button type="primary" size="small" @click="openFontDialog()">新增字体</el-button>
+        <!-- 照片管理 -->
+        <section v-else-if="activeTab === 'photos'" class="pane">
+          <div class="pane-toolbar">
+            <el-input
+              v-model="assetQuery.search"
+              size="small"
+              clearable
+              placeholder="搜索照片名称或地址"
+              class="search-input"
+              @keyup.enter="reloadFromPage1"
+              @clear="reloadFromPage1"
+            />
+            <el-button size="small" @click="reloadFromPage1">搜索</el-button>
+            <span class="toolbar-spacer"></span>
+            <el-button type="primary" size="small" @click="openAssetDialog('photos')">
+              <el-icon><Plus /></el-icon>
+              新增上传
+            </el-button>
           </div>
-          <el-table :data="fonts" size="small" v-loading="loading">
+          <el-table class="admin-table" :data="photoAssets" size="small" stripe v-loading="loading">
+            <el-table-column prop="categoryName" label="分类" width="150" />
+            <el-table-column prop="title" label="名称" min-width="180" show-overflow-tooltip />
+            <el-table-column prop="url" label="地址" min-width="280" show-overflow-tooltip />
+            <el-table-column label="操作" width="120" fixed="right">
+              <template #default="{ row }">
+                <el-button type="primary" size="small" link @click="openAssetDialog('photos', row)">编辑</el-button>
+                <el-button type="danger" size="small" link @click="onDeleteAsset('photos', row)">删除</el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+        </section>
+
+        <!-- 分类管理 -->
+        <section v-else-if="activeTab === 'categories'" class="pane">
+          <div class="pane-toolbar">
+            <el-radio-group v-model="categoryTab" size="small" @change="reloadFromPage1">
+              <el-radio-button value="template-categories">模板分类</el-radio-button>
+              <el-radio-button value="materials">素材分类</el-radio-button>
+              <el-radio-button value="photos">照片分类</el-radio-button>
+            </el-radio-group>
+          </div>
+
+          <template v-if="categoryTab === 'template-categories'">
+            <div class="pane-toolbar">
+              <el-radio-group v-model="templateCategoryType" size="small" @change="reloadFromPage1">
+                <el-radio-button :value="0">模板</el-radio-button>
+                <el-radio-button :value="1">组件</el-radio-button>
+              </el-radio-group>
+              <span class="toolbar-spacer"></span>
+              <el-input
+                v-model="newTemplateCategory.name"
+                size="small"
+                placeholder="分类名称，如节日海报"
+                class="name-input"
+                @keyup.enter="addTemplateCategory"
+              />
+              <el-button type="primary" size="small" @click="addTemplateCategory">新增分类</el-button>
+            </div>
+            <el-table class="admin-table" :data="templateCategories" size="small" stripe v-loading="loading">
+              <el-table-column prop="id" label="ID" width="80" />
+              <el-table-column prop="name" label="分类名称" min-width="220" show-overflow-tooltip />
+              <el-table-column prop="sort" label="排序" width="90" />
+              <el-table-column label="操作" width="160" fixed="right">
+                <template #default="{ row }">
+                  <el-button type="primary" size="small" link @click="onRenameTemplateCategory(row)">重命名</el-button>
+                  <el-button type="danger" size="small" link @click="onDelTemplateCategory(row)">删除</el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+          </template>
+
+          <template v-else>
+            <div class="pane-toolbar">
+              <span class="toolbar-spacer"></span>
+              <el-button type="primary" size="small" @click="onAddCategory(categoryTab)">
+                <el-icon><Plus /></el-icon>
+                新增分类
+              </el-button>
+            </div>
+            <el-table
+              class="admin-table"
+              :data="categoryTab === 'materials' ? materialCates : photoCates"
+              size="small"
+              stripe
+              v-loading="loading"
+            >
+              <el-table-column prop="id" label="ID" width="80" />
+              <el-table-column v-if="categoryTab === 'photos'" prop="cate" label="分类键" width="160" />
+              <el-table-column prop="name" label="分类名称" min-width="220" show-overflow-tooltip />
+              <el-table-column prop="count" label="数量" width="100" />
+              <el-table-column label="操作" width="160" fixed="right">
+                <template #default="{ row }">
+                  <el-button type="primary" size="small" link @click="onRenameCategory(categoryTab, row)">重命名</el-button>
+                  <el-button type="danger" size="small" link @click="onDelCategory(categoryTab, row)">删除</el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+          </template>
+        </section>
+
+        <!-- 字体管理 -->
+        <section v-else-if="activeTab === 'fonts'" class="pane">
+          <div class="pane-toolbar">
+            <el-input
+              v-model="fontQuery.search"
+              size="small"
+              clearable
+              placeholder="搜索字体名称 / value"
+              class="search-input"
+              @keyup.enter="reloadFromPage1"
+              @clear="reloadFromPage1"
+            />
+            <el-button size="small" @click="reloadFromPage1">搜索</el-button>
+            <span class="toolbar-spacer"></span>
+            <el-button type="primary" size="small" @click="openFontDialog()">
+              <el-icon><Plus /></el-icon>
+              新增字体
+            </el-button>
+          </div>
+          <el-table class="admin-table" :data="fonts" size="small" stripe v-loading="loading">
             <el-table-column prop="id" label="ID" width="70" />
             <el-table-column prop="alias" label="名称" min-width="120" show-overflow-tooltip />
             <el-table-column prop="value" label="value" min-width="140" show-overflow-tooltip />
@@ -183,13 +230,13 @@
             </el-table-column>
             <el-table-column label="woff" min-width="220" show-overflow-tooltip>
               <template #default="{ row }">
-                <a v-if="row.woff" :href="row.woff" target="_blank" rel="noopener" style="color: #409eff">{{ row.woff }}</a>
-                <span v-else style="color: #c0c4cc">-</span>
+                <a v-if="row.woff" :href="row.woff" target="_blank" rel="noopener" class="link-primary">{{ row.woff }}</a>
+                <span v-else class="muted-text">-</span>
               </template>
             </el-table-column>
             <el-table-column prop="font_family" label="font-family" min-width="140" show-overflow-tooltip />
             <el-table-column prop="created_at" label="创建时间" width="170" />
-            <el-table-column label="操作" width="90" fixed="right">
+            <el-table-column label="操作" width="120" fixed="right">
               <template #default="{ row }">
                 <el-button type="primary" size="small" link @click="openFontDialog(row)">编辑</el-button>
                 <el-button type="danger" size="small" link @click="onDelFont(row)">删除</el-button>
@@ -208,14 +255,97 @@
             @current-change="(page: number) => { fontQuery.page = page; loadTab() }"
             @size-change="(size: number) => { fontQuery.pageSize = size; fontQuery.page = 1; loadTab() }"
           />
-        </el-tab-pane>
+        </section>
 
-        <el-tab-pane label="AI 设置" name="ai-settings">
-          <div class="tab-toolbar">
-            <span class="tab-description">配置后登录用户即可在编辑器中使用文案 / 文生图 / 配色，<a href="https://bigmodel.cn/apikey/platform">点击前往智谱 ApiKey</a></span>
-            <el-button size="small" :loading="aiTesting" @click="testAiConnection">测试连接</el-button>
+        <!-- 用户图片 -->
+        <section v-else-if="activeTab === 'user-images'" class="pane">
+          <el-table class="admin-table" :data="userImages" size="small" stripe v-loading="loading">
+            <el-table-column prop="id" label="ID" width="80" />
+            <el-table-column label="预览" width="100">
+              <template #default="{ row }">
+                <el-image :src="row.url" :preview-src-list="[row.url]" fit="cover" style="width: 64px; height: 36px" preview-teleported />
+              </template>
+            </el-table-column>
+            <el-table-column label="尺寸" width="110"><template #default="{ row }">{{ row.width }} × {{ row.height }}</template></el-table-column>
+            <el-table-column prop="created_at" label="上传时间" width="180" />
+            <el-table-column label="操作" width="100" fixed="right">
+              <template #default="{ row }">
+                <el-button type="danger" size="small" link @click="onDelUserImage(row)">删除</el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+        </section>
+
+        <!-- 用户管理 -->
+        <section v-else-if="activeTab === 'users'" class="pane">
+          <div class="pane-toolbar">
+            <span class="toolbar-spacer"></span>
+            <el-button size="small" :loading="loading" @click="loadTab">
+              <el-icon><Refresh /></el-icon>
+              刷新
+            </el-button>
           </div>
-          <el-form label-width="110px" size="small" style="max-width: 520px; margin-top: 8px">
+          <el-table class="admin-table" :data="users" size="small" stripe v-loading="loading">
+            <el-table-column prop="id" label="ID" width="80" />
+            <el-table-column prop="account" label="账号" min-width="200" show-overflow-tooltip />
+            <el-table-column label="角色" width="120">
+              <template #default="{ row }">
+                <el-tag :type="row.role === 1 ? 'danger' : 'info'" size="small">{{ row.role === 1 ? '管理员' : '普通用户' }}</el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column prop="created_at" label="注册时间" width="180" />
+            <el-table-column label="操作" width="110" fixed="right">
+              <template #default="{ row }">
+                <el-button v-if="row.role !== 1" type="danger" size="small" link @click="onDelUser(row)">删除</el-button>
+                <span v-else class="muted-text">受保护</span>
+              </template>
+            </el-table-column>
+          </el-table>
+        </section>
+
+        <!-- 用户作品 -->
+        <section v-else-if="activeTab === 'designs'" class="pane">
+          <div class="pane-toolbar">
+            <span class="toolbar-spacer"></span>
+            <el-button size="small" :loading="loading" @click="loadTab">
+              <el-icon><Refresh /></el-icon>
+              刷新
+            </el-button>
+          </div>
+          <el-table class="admin-table" :data="designs" size="small" stripe v-loading="loading">
+            <el-table-column prop="id" label="ID" width="70" />
+            <el-table-column prop="account" label="用户" width="150" />
+            <el-table-column label="封面" width="100">
+              <template #default="{ row }">
+                <el-image v-if="row.cover" :src="row.cover" :preview-src-list="[row.cover]" fit="cover" style="width: 64px; height: 36px" preview-teleported />
+                <span v-else class="muted-text">暂无</span>
+              </template>
+            </el-table-column>
+            <el-table-column prop="title" label="标题" min-width="180" show-overflow-tooltip />
+            <el-table-column label="尺寸" width="110"><template #default="{ row }">{{ row.width }} × {{ row.height }}</template></el-table-column>
+            <el-table-column prop="created_at" label="创建时间" width="180" />
+            <el-table-column label="操作" width="100" fixed="right">
+              <template #default="{ row }">
+                <el-button type="danger" size="small" link @click="onDelDesign(row)">删除</el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+        </section>
+
+        <!-- AI 设置 -->
+        <section v-else-if="activeTab === 'ai-settings'" class="pane">
+          <div class="pane-toolbar">
+            <span class="toolbar-note">
+              配置后登录用户即可在编辑器中使用文案生成、文生图与智能配色，
+              <a class="link-primary" href="https://bigmodel.cn/apikey/platform" target="_blank" rel="noopener">点击前往智谱 ApiKey</a>
+            </span>
+            <span class="toolbar-spacer"></span>
+            <el-button size="small" :loading="aiTesting" @click="testAiConnection">
+              <el-icon><Link /></el-icon>
+              测试连接
+            </el-button>
+          </div>
+          <el-form class="ai-form" label-width="110px" size="small">
             <el-form-item label="API Key">
               <el-input v-model="aiForm.zhipu_api_key" :placeholder="aiForm.has_key ? '已配置，输入新值可覆盖' : '智谱开放平台申请的 API Key'" show-password />
             </el-form-item>
@@ -232,22 +362,62 @@
               <el-button type="primary" :loading="aiSaving" @click="saveAiSettings">保存设置</el-button>
             </el-form-item>
           </el-form>
-        </el-tab-pane>
-      </el-tabs>
-      <el-pagination v-if="adminTotal > adminPageSize" class="admin-pagination" background layout="total, sizes, prev, pager, next" :total="adminTotal" :current-page="adminPage" :page-size="adminPageSize" :page-sizes="[10, 20, 50]" @current-change="(page: number) => { adminPage = page; loadTab() }" @size-change="(size: number) => { adminPageSize = size; adminPage = 1; loadTab() }" />
+        </section>
+
+        <el-pagination
+          v-if="adminTotal > adminPageSize"
+          class="admin-pagination"
+          background
+          layout="total, sizes, prev, pager, next"
+          :total="adminTotal"
+          :current-page="adminPage"
+          :page-size="adminPageSize"
+          :page-sizes="[10, 20, 50]"
+          @current-change="(page: number) => { adminPage = page; loadTab() }"
+          @size-change="(size: number) => { adminPageSize = size; adminPage = 1; loadTab() }"
+        />
+      </main>
     </div>
 
     <el-dialog v-model="categoryDialog.visible" title="修改分类" width="420px">
-      <el-form label-width="80px"><el-form-item label="分类"><el-select v-model="categoryDialog.cate" placeholder="请选择分类" clearable style="width: 100%"><el-option v-for="item in categoryOptions" :key="item.id" :label="item.name" :value="item.name" /></el-select></el-form-item></el-form>
-      <template #footer><el-button @click="categoryDialog.visible = false">取消</el-button><el-button type="primary" :loading="categoryDialog.submitting" @click="saveCategory">保存</el-button></template>
+      <el-form label-width="80px">
+        <el-form-item label="分类">
+          <el-select v-model="categoryDialog.cate" placeholder="请选择分类" clearable style="width: 100%">
+            <el-option v-for="item in categoryOptions" :key="item.id" :label="item.name" :value="item.name" />
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="categoryDialog.visible = false">取消</el-button>
+        <el-button type="primary" :loading="categoryDialog.submitting" @click="saveCategory">保存</el-button>
+      </template>
     </el-dialog>
 
     <el-dialog v-model="assetDialog.visible" :title="assetDialog.index >= 0 ? '编辑资源' : '新增资源'" width="520px">
-      <el-form label-width="80px"><el-form-item label="分组"><el-select v-model="assetDialog.cate" style="width: 100%"><el-option v-for="item in assetDialog.categories" :key="item.cate" :label="item.name" :value="item.cate" /></el-select></el-form-item><el-form-item v-if="assetDialog.type === 'materials'" label="元素类型"><el-select v-model="assetDialog.assetType" style="width: 100%"><el-option label="Image 图片" value="image" /><el-option label="SVG 矢量元素" value="svg" /><el-option label="Mask 容器" value="mask" /></el-select></el-form-item><el-form-item label="名称"><el-input v-model="assetDialog.title" /></el-form-item><el-form-item label="图片 URL"><el-input v-model="assetDialog.url" placeholder="可填写远程 URL" /></el-form-item><el-form-item label="本地文件"><input type="file" accept="image/*,.svg" @change="onAssetFileChange" /></el-form-item></el-form>
-      <template #footer><el-button @click="assetDialog.visible = false">取消</el-button><el-button type="primary" :loading="assetDialog.submitting" @click="submitAsset">保存</el-button></template>
+      <el-form label-width="80px">
+        <el-form-item label="分组">
+          <el-select v-model="assetDialog.cate" style="width: 100%">
+            <el-option v-for="item in assetDialog.categories" :key="item.cate" :label="item.name" :value="item.cate" />
+          </el-select>
+        </el-form-item>
+        <el-form-item v-if="assetDialog.type === 'materials'" label="元素类型">
+          <el-select v-model="assetDialog.assetType" style="width: 100%">
+            <el-option label="Image 图片" value="image" />
+            <el-option label="SVG 矢量元素" value="svg" />
+            <el-option label="Mask 容器" value="mask" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="名称"><el-input v-model="assetDialog.title" /></el-form-item>
+        <el-form-item label="图片 URL"><el-input v-model="assetDialog.url" placeholder="可填写远程 URL" /></el-form-item>
+        <el-form-item label="本地文件"><input type="file" accept="image/*,.svg" @change="onAssetFileChange" /></el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="assetDialog.visible = false">取消</el-button>
+        <el-button type="primary" :loading="assetDialog.submitting" @click="submitAsset">保存</el-button>
+      </template>
     </el-dialog>
 
-    <!-- 新增字体对话框 -->
+    <!-- 新增 / 编辑字体对话框 -->
     <el-dialog v-model="fontDialog.visible" :title="fontDialog.title" width="560px" @closed="resetFontForm">
       <el-form ref="fontFormRef" :model="fontDialog.form" :rules="fontRules" label-width="92px" size="small">
         <el-form-item label="字体名称" prop="alias">
@@ -285,7 +455,7 @@
       </el-form>
       <template #footer>
         <el-button @click="fontDialog.visible = false">取消</el-button>
-        <el-button type="primary" :loading="fontDialog.submitting" @click="submitFont">确认新增</el-button>
+        <el-button type="primary" :loading="fontDialog.submitting" @click="submitFont">{{ fontDialog.form.id ? '确认编辑' : '确认新增' }}</el-button>
       </template>
     </el-dialog>
   </div>
@@ -304,15 +474,45 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 // ElTable / ElTabs 等未全局注册（见 elementConfig.ts），本页手动引入
-import { ElMessage, ElMessageBox, ElTable, ElTableColumn, ElTabs, ElTabPane, ElTag, ElButton, ElImage, ElDialog, ElForm, ElFormItem, ElInput, ElInputNumber, ElRadioGroup, ElRadio, ElRadioButton, ElPagination, ElSelect, ElOption, ElSwitch, type FormInstance, type FormRules } from 'element-plus'
+import {
+  ElMessage,
+  ElMessageBox,
+  ElTable,
+  ElTableColumn,
+  ElTag,
+  ElButton,
+  ElImage,
+  ElDialog,
+  ElForm,
+  ElFormItem,
+  ElInput,
+  ElInputNumber,
+  ElIcon,
+  ElRadioGroup,
+  ElRadio,
+  ElRadioButton,
+  ElPagination,
+  ElSelect,
+  ElOption,
+  ElSwitch,
+  type FormInstance,
+  type FormRules,
+} from 'element-plus'
+import { Grid, Files, PictureFilled, Document, Upload, EditPen, MagicStick, Refresh, Plus, Link } from '@element-plus/icons-vue'
 import { LocalStorageKey } from '@/config'
 import * as adminApi from '@/api/admin'
 import * as materialApi from '@/api/material'
 import AdminTemplateTable from '@/views/components/AdminTemplateTable.vue'
+import AdminSidebar from './admin/comps/AdminSidebar.vue'
+import AdminTopbar from './admin/comps/AdminTopbar.vue'
+import StatCard from './admin/comps/StatCard.vue'
+import QuickAction from './admin/comps/QuickAction.vue'
+import { PAGE_META } from './admin/constants'
+import type { TOverviewStat, TCategoryTab, TAdminUser } from './admin/types'
 
 const router = useRouter()
-const activeTab = ref('templates')
-const categoryTab = ref('template-categories')
+const activeTab = ref('overview')
+const categoryTab = ref<TCategoryTab>('template-categories')
 const loading = ref(false)
 const templates = ref<any[]>([])
 const templateType = ref('templates-list')
@@ -336,15 +536,44 @@ const aiTesting = ref(false)
 const adminPage = ref(1)
 const adminPageSize = ref(20)
 const adminTotal = ref(0)
+// 本地登录的管理员（侧边栏底部展示）
+const adminUser = reactive<TAdminUser>({ account: '', role: 0 })
+// 总览页统计：pageSize 上限 100（后端 pageResult 封顶），常规管理规模下可完整计数
+const overview = reactive({ templates: 0, components: 0, userImages: 0, fonts: 0 })
 const templateRows = computed(() => templates.value.filter((item) => item.type === 0))
 const componentRows = computed(() => templates.value.filter((item) => item.type === 1))
-const templateCount = computed(() => templateRows.value.length)
-const componentCount = computed(() => componentRows.value.length)
 const categoryOptions = ref<any[]>([])
 const categoryDialog = reactive({ visible: false, submitting: false, row: null as any, cate: '' })
-const assetDialog = reactive({ visible: false, submitting: false, type: 'materials' as 'materials' | 'photos', cate: '', sourceCate: '', assetType: 'image', title: '', url: '', index: -1, file: null as File | null, categories: [] as any[] })
+const assetDialog = reactive({
+  visible: false,
+  submitting: false,
+  type: 'materials' as 'materials' | 'photos',
+  cate: '',
+  sourceCate: '',
+  assetType: 'image',
+  title: '',
+  url: '',
+  index: -1,
+  file: null as File | null,
+  categories: [] as any[],
+})
 
-/** 字体新增对话框状态 */
+const pageMeta = computed(() => PAGE_META[activeTab.value] || PAGE_META.overview)
+
+const overviewStats = computed<TOverviewStat[]>(() => [
+  { key: 'templates', tab: 'templates', label: '模板', value: overview.templates, icon: Grid, hint: '可直接使用的设计', templateType: 'templates-list' },
+  { key: 'components', tab: 'templates', label: '组件', value: overview.components, icon: Files, hint: '可组合到画布中', templateType: 'components-list' },
+  { key: 'user-images', tab: 'user-images', label: '用户图片', value: overview.userImages, icon: PictureFilled, hint: '仅记录，不删文件' },
+  { key: 'fonts', tab: 'fonts', label: '字体', value: overview.fonts, icon: Document, hint: '编辑器可选用' },
+])
+
+/** 统计卡跳转：模板/组件共用一个面板，需同时切到对应子视图 */
+function onStatGo(stat: TOverviewStat) {
+  if (stat.templateType) templateType.value = stat.templateType
+  onSelectTab(stat.tab)
+}
+
+/** 字体新增 / 编辑对话框状态 */
 const fontDialog = reactive({
   visible: false,
   title: '新增字体',
@@ -466,13 +695,29 @@ function deny(msg: string) {
   setTimeout(() => (window.location.href = './'), 800)
 }
 
-/** 前端仅做入口守卫（读本地用户信息），真正的权限由后端 requireAdmin 校验 */
-function checkLocalRole(): boolean {
+/** 主动退出登录（与 Index.vue 的 logout 行为一致） */
+function onLogout() {
+  localStorage.removeItem('xp_user')
+  localStorage.removeItem(LocalStorageKey.tokenKey)
+  window.location.href = './'
+}
+
+/** 读取本地登录用户；同时刷新侧边栏展示的账号信息 */
+function readLocalUser(): TAdminUser | null {
   try {
     const user = JSON.parse(localStorage.getItem('xp_user') || 'null')
-    if (user && typeof user.account === 'string' && user.role === 1) return true
+    if (user && typeof user.account === 'string' && user.role === 1) return { account: user.account, role: user.role }
   } catch (e) {}
-  return false
+  return null
+}
+
+/** 前端仅做入口守卫（读本地用户信息），真正的权限由后端 requireAdmin 校验 */
+function checkLocalRole(): boolean {
+  const user = readLocalUser()
+  if (!user) return false
+  adminUser.account = user.account
+  adminUser.role = user.role
+  return true
 }
 
 onMounted(() => {
@@ -483,9 +728,47 @@ onMounted(() => {
   loadTab()
 })
 
-/** 拉取当前 Tab 数据；接口返回 401（HTTP 200 + code 401）时回首页 */
+/** 切换导航页：重置分页后拉取该页数据 */
+function onSelectTab(key: string) {
+  if (activeTab.value === key) return
+  activeTab.value = key
+  adminPage.value = 1
+  loadTab()
+}
+
+/** 搜索类操作回到第一页，避免停留在第 2 页时搜不到结果 */
+function reloadFromPage1() {
+  adminPage.value = 1
+  loadTab()
+}
+
+/** 总览页统计：模板/组件按 type 拆分计数，其余直接取接口 total */
+async function loadOverview() {
+  loading.value = true
+  try {
+    // 接口成功时拦截器只回 result 本体，非 200 时回完整对象，故统一按 any 接收
+    const [tplRes, imgRes, fontRes]: any[] = await Promise.all([
+      adminApi.getTemplates({ page: 1, pageSize: 100 }),
+      adminApi.getUserImages({ page: 1, pageSize: 1 }),
+      adminApi.getFonts({ page: 1, pageSize: 1 }),
+    ])
+    const tplList: any[] = Array.isArray(tplRes?.list) ? tplRes.list : []
+    overview.templates = tplList.filter((item) => Number(item.type) === 0).length
+    overview.components = tplList.filter((item) => Number(item.type) === 1).length
+    overview.userImages = Number(imgRes?.total) || 0
+    overview.fonts = Number(fontRes?.total) || 0
+    if (tplRes?.code === 401) deny(tplRes?.msg === '请先登录' ? '登录已失效，请重新登录' : '无管理员权限')
+  } catch (e: any) {
+    ElMessage.error('数据加载失败')
+  } finally {
+    loading.value = false
+  }
+}
+
+/** 拉取当前导航页数据；接口返回 401（HTTP 200 + code 401）时回首页 */
 async function loadTab() {
   if (!checkLocalRole()) return
+  if (activeTab.value === 'overview') return loadOverview()
   loading.value = true
   try {
     let res: any
@@ -493,7 +776,7 @@ async function loadTab() {
     if (activeTab.value === 'templates') {
       res = await adminApi.getTemplates({ page: adminPage.value, pageSize: adminPageSize.value })
       templates.value = res?.list || []
-    } else if (activeTab.value === 'images') {
+    } else if (activeTab.value === 'user-images') {
       res = await adminApi.getUserImages({ page: adminPage.value, pageSize: adminPageSize.value })
       userImages.value = res?.list || []
     } else if (activeTab.value === 'users') {
@@ -508,19 +791,10 @@ async function loadTab() {
       if (categoryTab.value === 'template-categories') templateCategories.value = res?.list || []
       else if (categoryTab.value === 'materials') materialCates.value = res?.list || []
       else photoCates.value = res?.list || []
-    } else if (activeTab.value === 'materials-assets') {
-      res = await adminApi.getAssets('materials', { ...assetQuery, page: adminPage.value, pageSize: adminPageSize.value }); materialAssets.value = res?.list || []
-    } else if (activeTab.value === 'photos-assets') {
-      res = await adminApi.getAssets('photos', { ...assetQuery, page: adminPage.value, pageSize: adminPageSize.value }); photoAssets.value = res?.list || []
     } else if (activeTab.value === 'materials') {
-      res = await adminApi.getCategories('materials')
-      materialCates.value = res?.list || []
-    } else if (activeTab.value === 'template-categories') {
-      res = await adminApi.getTemplateCategories(templateCategoryType.value)
-      templateCategories.value = res?.list || []
+      res = await adminApi.getAssets('materials', { ...assetQuery, page: adminPage.value, pageSize: adminPageSize.value }); materialAssets.value = res?.list || []
     } else if (activeTab.value === 'photos') {
-      res = await adminApi.getCategories('photos')
-      photoCates.value = res?.list || []
+      res = await adminApi.getAssets('photos', { ...assetQuery, page: adminPage.value, pageSize: adminPageSize.value }); photoAssets.value = res?.list || []
     } else if (activeTab.value === 'fonts') {
       res = await adminApi.getFonts(fontQuery)
       fonts.value = res?.list || []
@@ -570,8 +844,9 @@ async function saveCategory() {
   categoryDialog.submitting = true
   try {
     const res: any = await adminApi.updateTemplateCategory({ id: row.id, type: Number(row.type) === 1 ? 1 : 0, cate: categoryDialog.cate || '' })
-    // 请求封装会解包成功响应的 result：新增返回 { id }，编辑无 result 时返回 { code: 200 }。
-    if ((fontDialog.form.id && res?.code === 200) || (!fontDialog.form.id && Number(res?.id) > 0)) {
+    // 本弹窗只用于编辑，后端成功时返回 { code: 200 }（编辑无 result）。
+    // 不再借 fontDialog.form.id 区分新增/编辑——那是字体弹窗的残留状态，与本行无关。
+    if (res?.code === 200 || Number(res?.id) > 0) {
       row.cate = categoryDialog.cate || ''
       categoryDialog.visible = false
       ElMessage.success('分类已更新')
@@ -782,61 +1057,121 @@ async function testAiConnection() {
 </script>
 
 <style lang="less" scoped>
-.admin-page {
-  height: 100vh;
-  min-height: 100vh;
-  background: #f5f7fa;
-  padding: 24px;
-  box-sizing: border-box;
-  overflow: auto;
-}
-.admin-panel {
-  max-width: 1080px;
-  margin: 0 auto;
-  background: #fff;
-  border-radius: 8px;
-  padding: 16px 24px 24px;
-  box-sizing: border-box;
-}
-.admin-panel :deep(.el-table__body-wrapper) {
-  max-height: calc(100vh - 360px);
-  overflow-y: auto;
-}
-.admin-header {
+/* ── 骨架：左侧导航 + 右侧（顶栏 + 可滚动内容区）────────────────────── */
+.admin-shell {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 18px;
-  font-weight: 600;
-  margin-bottom: 8px;
+  height: 100vh;
+  background: @color-canvas-page;
+  color: @color-ink;
+  overflow: hidden;
 }
-.admin-summary {
+.admin-main {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+}
+.admin-body {
+  flex: 1;
+  min-height: 0;
+  padding: 24px 28px 28px;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+/* ── 白色内容托盘 ───────────────────────────────────────────────────── */
+.pane {
+  padding: 20px 22px;
+  background: @color-canvas;
+  border: 1px solid @color-hairline;
+  border-radius: @radius-md;
+  box-sizing: border-box;
+  + .pane {
+    margin-top: 16px;
+  }
+}
+.pane-title {
+  margin: 0 0 14px;
+  font-size: 15px;
+  font-weight: 600;
+  color: @color-ink-strong;
+}
+.pane-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  .toolbar-spacer { flex: 1; }
+  .toolbar-note {
+    flex: 1;
+    min-width: 0;
+    font-size: 13px;
+    color: @color-ink-muted;
+  }
+  .search-input { width: 260px; }
+  .name-input { width: 200px; }
+}
+
+/* ── 总览页 ─────────────────────────────────────────────────────────── */
+.overview-stats {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 20px;
+}
+.quick-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
-  margin: 8px 0 20px;
 }
-.summary-card {
-  padding: 14px 16px;
-  border: 1px solid #ebeef5;
-  border-radius: 6px;
-  background: #fafcff;
+
+/* ── 表格统一样式（:deep 覆盖到 AdminTemplateTable 内部的表头）───────── */
+.pane :deep(th.el-table__cell) {
+  padding: 11px 0;
+  background: @color-canvas-page;
+  color: @color-ink-muted;
+  font-weight: 600;
+  font-size: 13px;
 }
-.summary-card strong { display: block; margin-top: 6px; color: #303133; font-size: 24px; }
-.summary-label { color: #909399; font-size: 13px; }
-.tab-toolbar {
+.pane :deep(td.el-table__cell) {
+  padding: 9px 0;
+  font-size: 13px;
+}
+.pane :deep(.el-table__empty-block) {
+  min-height: 120px;
+}
+
+/* ── 通用文字 ───────────────────────────────────────────────────────── */
+.muted-text {
+  font-size: 12px;
+  color: @color-ink-hint;
+}
+.link-primary {
+  color: @color-primary;
+  text-decoration: none;
+  &:hover { color: @color-primary-hover; }
+}
+
+/* ── AI 设置表单 ────────────────────────────────────────────────────── */
+.ai-form {
+  max-width: 560px;
+  margin-top: 4px;
+}
+
+/* ── 分页 ───────────────────────────────────────────────────────────── */
+.admin-pagination {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 12px;
+  justify-content: flex-end;
+  margin-top: 16px;
 }
-.tab-description { flex: 1; color: #909399; font-size: 13px; }
-.muted-text { color: #c0c4cc; font-size: 12px; }
-@media (max-width: 720px) {
-  .admin-page { padding: 12px; }
-  .admin-panel { padding: 12px; }
-  .admin-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .tab-toolbar { flex-wrap: wrap; }
-  .tab-description { flex-basis: 100%; }
+
+@media (max-width: 900px) {
+  .admin-body { padding: 16px; }
+  .overview-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .quick-actions { grid-template-columns: 1fr; }
+  .pane-toolbar {
+    flex-wrap: wrap;
+    .toolbar-spacer { display: none; }
+  }
 }
 </style>

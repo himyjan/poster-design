@@ -293,7 +293,7 @@ function down() {
     }
   }
   li.active {
-    color: #3b74f1;
+    color: @color-primary;
   }
   .preview {
     // transform: scaleY(-1);

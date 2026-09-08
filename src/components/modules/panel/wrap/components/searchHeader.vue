@@ -131,7 +131,7 @@ defineExpose({
 
 .cate {
   &__text {
-    font-weight: bold;
+    font-weight: 600;
   }
   &--select {
     color: @main-color;

@@ -1,3 +1,14 @@
+<!--
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ * Copyright (C) 2026 palxiao https://xpai.design
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * @Description: 下载进度遮罩
+-->
 <template>
   <div v-if="percent" class="mask">
     <div class="content">
@@ -80,7 +91,7 @@ defineExpose({
 .text {
   margin: 2rem 0;
   font-size: 20px;
-  font-weight: bold;
+  font-weight: 600;
   width: 100%;
   text-align: center;
   color: #333333;
@@ -89,7 +100,7 @@ defineExpose({
   font-weight: 400;
   font-size: 16px;
   cursor: pointer;
-  color: #3771e5;
+  color: @color-primary;
 }
 .info {
   font-weight: 400;

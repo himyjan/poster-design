@@ -1,0 +1,78 @@
+// =============================================================================
+// CSS 变量层：把 LESS token 暴露为 :root 上的自定义属性，并集中覆写 Element Plus
+// 主题变量。对应 DESIGN.md §8。
+//
+// 本文件只在全局样式 index.less 中编译一次。不要把 :root 声明放进 color.less ——
+// color.less 会被 less.modifyVars 注入到每个 SFC，放那边会在每个 CSS chunk 里
+// 重复输出 :root。
+// =============================================================================
+
+:root {
+  /* ── 项目 token：供纯 CSS 作用域与第三方组件消费 ── */
+  --pd-primary: @color-primary;
+  --pd-primary-hover: @color-primary-hover;
+  --pd-primary-active: @color-primary-active;
+  --pd-primary-soft: @color-primary-soft;
+  --pd-primary-ring: @color-primary-ring;
+
+  --pd-ink-strong: @color-ink-strong;
+  --pd-ink: @color-ink;
+  --pd-ink-secondary: @color-ink-secondary;
+  --pd-ink-muted: @color-ink-muted;
+  --pd-ink-hint: @color-ink-hint;
+  --pd-ink-disabled: @color-ink-disabled;
+
+  --pd-canvas: @color-canvas;
+  --pd-canvas-artboard: @color-canvas-artboard;
+  --pd-canvas-page: @color-canvas-page;
+  --pd-surface-inset: @color-surface-inset;
+  --pd-surface-hover: @color-surface-hover;
+
+  --pd-hairline: @color-hairline;
+  --pd-hairline-soft: @color-hairline-soft;
+  --pd-hairline-strong: @color-hairline-strong;
+
+  --pd-radius-xs: @radius-xs;
+  --pd-radius-sm: @radius-sm;
+  --pd-radius-md: @radius-md;
+  --pd-radius-lg: @radius-lg;
+
+  /* ── Element Plus 覆写 ──
+     只覆写会产生真实视觉差异的项。
+
+     primary 的浅色档必须显式给出：EP 打包时用 Sass mix() 把它们烘焙成了字面量
+     （light-N = mix(white, base, N*10%)，dark-2 = mix(black, base, 20%)），
+     运行时并不会跟随 --el-color-primary 重算。只覆写 --el-color-primary 会让
+     ElButton 的 hover/active、ElTag 浅底等停留在 EP 默认的 #409eff 色族。
+     下面用 LESS 的 mix() 按同一公式现场推导 —— LESS 输出与 EP 的 Sass 逐值一致
+     （已用 EP 内置 #409eff 的 light-3/5/9 与 dark-2 四个值校验），因此
+     @color-primary 变更时无需手工维护这一组。
+
+     -light-9 推导为 #e9eefe，与 --pd-primary-soft (#e8efff) 相差 1 个色阶，
+     两者视觉上不可区分，EP 浅底态与项目 token 保持同一浅色。 */
+  // 先各自解引用成变量：LESS 4.2 在逗号分隔的自定义属性值里只求值第一个
+  // 函数调用，直接写 red(...), green(...), blue(...) 会把后两个原样输出成
+  // green(#2254f4) 之类的无效 CSS。
+  @pd-rgb-r: red(@color-primary);
+  @pd-rgb-g: green(@color-primary);
+  @pd-rgb-b: blue(@color-primary);
+  --el-color-primary: @color-primary;
+  --el-color-primary-light-3: mix(white, @color-primary, 30%);
+  --el-color-primary-light-5: mix(white, @color-primary, 50%);
+  --el-color-primary-light-7: mix(white, @color-primary, 70%);
+  --el-color-primary-light-8: mix(white, @color-primary, 80%);
+  --el-color-primary-light-9: mix(white, @color-primary, 90%);
+  --el-color-primary-dark-2: mix(black, @color-primary, 20%);
+  --el-color-primary-rgb: @pd-rgb-r, @pd-rgb-g, @pd-rgb-b;
+  /* EP 默认 4px。本规范基准圆角 6px，是唯一影响 EP 组件几何的覆写，作用于
+     ElButton / ElInput / ElDialog / ElCard / ElPopover 等的圆角。 */
+  --el-border-radius-base: @radius-sm;
+
+  /* 刻意不覆写的三项（保持 EP 默认，理由如下）：
+     - --el-text-color-*（EP #303133/#606266/#909399）：与我们的灰阶相差 ≤2 个
+       色阶，覆写只会在 /admin 的密集表格里产生无意义的视觉漂移。
+     - --el-fill-color-light（EP #f5f7fa）：表格行 hover 背景依赖它，改成
+       @color-canvas-artboard (#f8f8f8) 会让 hover 态几乎不可见。
+     - --el-border-color-lighter（EP #ebeef5）：表格单元格线依赖它，改成
+       #e5e7eb 会让表格线整体变深。 */
+}

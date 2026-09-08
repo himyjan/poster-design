@@ -284,10 +284,10 @@ defineExpose({
   height: 54px;
   .top-icon {
     background-color: rgba(0, 0, 0, 0.4);
-    border-radius: 5px;
+    border-radius: @radius-sm;
     color: #ffffff;
     cursor: pointer;
-    font-weight: bold;
+    font-weight: 600;
     margin: 8px;
     padding: 5px 8px;
     &:hover {

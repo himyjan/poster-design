@@ -336,15 +336,15 @@ defineExpose({ open })
     height: 44px;
     line-height: 44px;
     &.is-active {
-      color: #409eff;
+      color: @color-primary;
     }
     &:hover {
-      color: #66b1ff;
+      color: @color-primary-hover;
     }
   }
   :deep(.el-tabs__active-bar) {
     height: 3px;
-    background-color: #409eff;
+    background-color: @color-primary;
     border-radius: 2px;
   }
   :deep(.el-tabs__content) {

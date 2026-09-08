@@ -1,12 +1,54 @@
-// @color-main: #1b1634;
-@color-main: #ffffff;
-@color-white: #ffffff;
-@color-black: #000000;
-@color-light-gray: #3e4651;
-@color-dark-gray: #262c33;
-@color-transparent: #ffffff00;
+// =============================================================================
+// 设计 token 单一来源（对应 DESIGN.md §2 颜色 / §3 字体 / §7 圆角）
+//
+// vite.config.ts 的 less.modifyVars 会把本文件 @import 进每一次 LESS 编译，
+// 因此全局所有 .less 文件与所有 <style lang="less"> 块都能直接使用下面的变量。
+//
+// 注意：LESS 变量是「首次定义生效」，定义新变量或别名时请放在引用它的定义之前。
+// =============================================================================
 
-// @active-text-color: rgb(250, 131, 52);
-// @main-color: rgb(250, 131, 52);
-@active-text-color: #2254f4; // #1195db;
-@main-color: #2254f4; // #1195db;
+// ── 品牌强调色（全系统唯一强调色，语义限定：选中 / 激活 / 主按钮）─────────────
+@color-primary: #2254f4;
+@color-primary-hover: #1a44d6;
+@color-primary-active: #1639b8;
+@color-primary-soft: #e8efff; // 与 tokens.less 推导出的 --el-color-primary-light-9 (#e9eefe) 相差 1 个色阶，视觉不可区分
+@color-primary-ring: rgba(34, 84, 244, 0.15); // 输入框聚焦光晕
+
+// ── 文本灰阶（6 档，只用这几档，勿新增中间灰）───────────────────────────────
+@color-ink-strong: #262c33; // 输入框内的文字
+@color-ink: #333333; // 正文、顶栏
+@color-ink-secondary: #50555b; // 次级标题
+@color-ink-muted: #666666; // 分区标题、次要信息
+@color-ink-hint: #999999; // 占位符、禁用提示
+@color-ink-disabled: #c2c2c2; // 不可点状态
+
+// ── 表面 ────────────────────────────────────────────────────────────────────
+@color-canvas: #ffffff; // 面板、顶栏、输入框、弹窗
+@color-canvas-artboard: #f8f8f8; // 画布工作区
+@color-canvas-page: #f0f2f5; // 首页、模板列表页
+@color-surface-inset: #f0f0f0; // 内嵌区域、禁用输入底、透明棋盘格底
+@color-surface-hover: rgba(0, 0, 0, 0.03); // 图标轨 hover 底
+
+// ── 描边 ────────────────────────────────────────────────────────────────────
+@color-hairline: #e5e7eb; // 全局 1px 边框（与 main.less 的 * { border-color } 一致）
+@color-hairline-soft: rgba(0, 0, 0, 0.07); // 面板内部区线、左右面板与画布的分界
+@color-hairline-strong: #dcdfe6; // 需要更强对比的表格线（与 EP --el-border-color 一致）
+
+// ── 圆角（6px 为唯一基准；12px 只给浮层托盘，4px 只给滚动条与极小 chip）─────
+@radius-xs: 4px;
+@radius-sm: 6px;
+@radius-md: 8px;
+@radius-lg: 12px;
+@radius-full: 9999px;
+
+// =============================================================================
+// 历史变量别名 —— 保留以兼容存量代码，请勿新增引用
+// =============================================================================
+@color-main: @color-canvas;
+@color-white: @color-canvas;
+@color-black: #000000;
+@color-light-gray: #3e4651; // 命名与值相反（值实际偏深），无引用，待废弃
+@color-dark-gray: @color-ink-strong;
+@color-transparent: #ffffff00;
+@active-text-color: @color-primary; // 历史值 rgb(250, 131, 52) / #1195db 已废弃
+@main-color: @color-primary; // 历史值 rgb(250, 131, 52) / #1195db 已废弃

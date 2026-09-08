@@ -2,7 +2,7 @@
 .el-collapse-item__header {
   padding: 0;
   font-size: 14px !important;
-  color: #666666 !important;
+  color: @color-ink-muted !important;
   user-select: none;
 }
 .el-collapse-item__wrap {
@@ -19,48 +19,48 @@
 .el-pagination {
   padding: 0;
   .btn-prev {
-    border-radius: 5px;
-    border: 1px solid #e5e5e5;
+    border-radius: @radius-sm;
+    border: 1px solid @color-hairline;
     height: 30px;
     margin-right: 10px;
     width: 30px;
   }
   .btn-next {
-    border-radius: 5px;
-    border: 1px solid #e5e5e5;
+    border-radius: @radius-sm;
+    border: 1px solid @color-hairline;
     height: 30px;
     margin-right: 10px;
     width: 30px;
   }
   .el-pager > li {
-    border-radius: 5px;
-    border: 1px solid #e5e5e5;
+    border-radius: @radius-sm;
+    border: 1px solid @color-hairline;
     border: none;
-    color: #a5a5a5;
+    color: @color-ink-hint;
     font-size: 14px;
     height: 30px;
     margin-right: 10px;
   }
   .el-pager {
     .active {
-      background: #24b9ff;
+      background: @color-primary;
       border: none;
       color: #ffffff;
     }
   }
   .el-icon-arrow-left {
-    color: #a5a5a5;
+    color: @color-ink-hint;
     font-size: 14px;
   }
   .el-icon-arrow-right {
-    color: #a5a5a5;
+    color: @color-ink-hint;
     font-size: 14px;
   }
   .el-select {
     .el-input {
       input {
-        border-radius: 5px;
-        color: #262c33;
+        border-radius: @radius-sm;
+        color: @color-ink-strong;
         font-size: 14px;
         height: 30px;
       }
@@ -75,8 +75,8 @@
 .el-pagination__jump {
   font-size: 14px !important;
   .el-pagination__editor {
-    border-radius: 5px;
-    color: #262c33;
+    border-radius: @radius-sm;
+    color: @color-ink-strong;
     font-size: 14px;
     height: 30px;
   }
@@ -100,10 +100,10 @@
   word-wrap: break-word;
 }
 
-// 点击选择框样式
+// 点击选择框样式（DESIGN.md §5：虚线是全系统唯一的选择语言）
 .layer {
   &:hover {
-    outline: 2px dashed @main-color !important;
+    outline: 2px dashed @color-primary !important;
   }
 }
 .layer-no-hover {
@@ -119,9 +119,9 @@
 //   }
 // }
 .layer-hover {
-  outline: 2px dashed @main-color !important;
+  outline: 2px dashed @color-primary !important;
   &:hover {
-    outline: 2px dashed @main-color !important;
+    outline: 2px dashed @color-primary !important;
   }
 }
 // 锁定不可选中
