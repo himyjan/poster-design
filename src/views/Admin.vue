@@ -337,7 +337,7 @@
           <div class="pane-toolbar">
             <span class="toolbar-note">
               配置后登录用户即可在编辑器中使用文案生成、文生图与智能配色，
-              <a class="link-primary" href="https://bigmodel.cn/apikey/platform" target="_blank" rel="noopener">点击前往智谱 ApiKey</a>
+              默认对接智谱开放平台（<a class="link-primary" href="https://bigmodel.cn/apikey/platform" target="_blank" rel="noopener">申请 ApiKey</a>），也支持任意 OpenAI 兼容接口
             </span>
             <span class="toolbar-spacer"></span>
             <el-button size="small" :loading="aiTesting" @click="testAiConnection">
@@ -346,14 +346,22 @@
             </el-button>
           </div>
           <el-form class="ai-form" label-width="110px" size="small">
+            <el-form-item label="接口地址">
+              <el-input v-model="aiForm.base_url" placeholder="OpenAI 兼容端点，默认智谱开放平台" />
+            </el-form-item>
             <el-form-item label="API Key">
-              <el-input v-model="aiForm.zhipu_api_key" :placeholder="aiForm.has_key ? '已配置，输入新值可覆盖' : '智谱开放平台申请的 API Key'" show-password />
+              <el-input v-model="aiForm.api_key" :placeholder="aiForm.has_key ? '已配置，输入新值可覆盖' : '服务商申请的 API Key'" show-password />
             </el-form-item>
             <el-form-item label="文案模型">
               <el-input v-model="aiForm.text_model" placeholder="默认 glm-4-flash（免费）" />
             </el-form-item>
             <el-form-item label="生图模型">
               <el-input v-model="aiForm.image_model" placeholder="默认 cogview-3-flash" />
+            </el-form-item>
+            <el-form-item label="生图尺寸">
+              <el-select v-model="aiForm.image_size_mode" style="width: 100%">
+                <el-option v-for="item in AI_SIZE_MODE_OPTIONS" :key="item.value" :label="item.label" :value="item.value" />
+              </el-select>
             </el-form-item>
             <el-form-item label="启用 AI 功能">
               <el-switch v-model="aiForm.enabled" />
@@ -507,7 +515,7 @@ import AdminSidebar from './admin/comps/AdminSidebar.vue'
 import AdminTopbar from './admin/comps/AdminTopbar.vue'
 import StatCard from './admin/comps/StatCard.vue'
 import QuickAction from './admin/comps/QuickAction.vue'
-import { PAGE_META } from './admin/constants'
+import { PAGE_META, AI_SIZE_MODE_OPTIONS } from './admin/constants'
 import type { TOverviewStat, TCategoryTab, TAdminUser } from './admin/types'
 
 const router = useRouter()
@@ -530,7 +538,15 @@ const templateCategoryType = ref<0 | 1>(0)
 const fonts = ref<adminApi.TAdminFontItem[]>([])
 const fontQuery = reactive({ page: 1, pageSize: 20, search: '', total: 0 })
 // AI 设置
-const aiForm = reactive<adminApi.TAiSettings>({ zhipu_api_key: '', has_key: false, text_model: '', image_model: '', enabled: false })
+const aiForm = reactive<adminApi.TAiSettings>({
+  api_key: '',
+  has_key: false,
+  text_model: '',
+  image_model: '',
+  base_url: '',
+  image_size_mode: 'zhipu',
+  enabled: false,
+})
 const aiSaving = ref(false)
 const aiTesting = ref(false)
 const adminPage = ref(1)
@@ -1022,9 +1038,11 @@ async function saveAiSettings() {
   aiSaving.value = true
   try {
     const res: any = await adminApi.updateAiSettings({
-      zhipu_api_key: aiForm.zhipu_api_key.trim() || undefined,
+      base_url: aiForm.base_url.trim(),
+      api_key: aiForm.api_key.trim() || undefined,
       text_model: aiForm.text_model.trim(),
       image_model: aiForm.image_model.trim(),
+      image_size_mode: aiForm.image_size_mode,
       enabled: aiForm.enabled,
     })
     if (res?.code === 200) {

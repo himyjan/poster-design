@@ -204,6 +204,8 @@ npm run serve
 
 6. 字体管理：分页、搜索、新增、编辑、删除及 woff/woff2 文件上传。
 
+7. AI 配置：兼容任意 OpenAI 格式接口（默认智谱开放平台），可在后台配置接口地址、API Key、文案/生图模型与生图尺寸档位，并在线测试连通性。
+
 #### 服务端数据与接口
 
 1. 使用 SQLite 持久化模板、组件、分类、字体、用户、作品和图片数据，启动时自动执行表结构迁移。
@@ -222,14 +224,14 @@ npm run serve
 开源不易，看到这别忘了给本项目点个 **Star** ~ 您的支持是对开源作者最大的鼓励 :heart:
 
 <a href="https://www.star-history.com/?repos=palxiao%2Fposter-design&type=date&legend=top-left" target="_blank">
-  <img src="https://api.star-history.com/chart?repos=palxiao/poster-design&type=date&legend=top-left&sealed_token=9jTOGHY5QQTM4AMJnl_kl2k_gpBHryAWKtzE0LxROivWVyq_NkxYrv90TUQ1rimbI60wmvUcFLzJ3Rbk3fcaduZP9kK1VWymajOMXjGZva0czGEn8lYtgehwqDB7Zhw_ibK7YGCPD9F6-gb-2UKc0MRzVuyCBqQSfAeXx8wLFwT8AANF2LjR9-hGzFuI" width="480" alt="Star History Chart" />
+  <img src="https://api.star-history.com/chart?repos=palxiao/poster-design&type=date&legend=top-left&sealed_token=9jTOGHY5QQTM4AMJnl_kl2k_gpBHryAWKtzE0LxROivWVyq_NkxYrv90TUQ1rimbI60wmvUcFLzJ3Rbk3fcaduZP9kK1VWymajOMXjGZva0czGEn8lYtgehwqDB7Zhw_ibK7YGCPD9F6-gb-2UKc0MRzVuyCBqQSfAeXx8wLFwT8AANF2LjR9-hGzFuI" alt="Star History Chart" />
 </a>
 
 ### 交流群
 
 欢迎关注作者公众号《品味前端》，回复“加群”或添加作者微信。
 
-<img src="https://xp.palxp.cn/images/2024-3-1-1709306365949.png" />
+<img width="480" src="https://xp.palxp.cn/images/2024-3-1-1709306365949.png" />
 
 ### 社区合作伙伴
 

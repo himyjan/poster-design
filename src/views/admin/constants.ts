@@ -65,3 +65,10 @@ export const PAGE_META: Record<string, { title: string; description: string }> =
   designs: { title: '用户作品', description: '查看用户保存的作品，不展示作品编辑数据' },
   'ai-settings': { title: 'AI 设置', description: '配置后登录用户即可在编辑器中使用文案生成、文生图与智能配色' },
 }
+
+/** AI 生图尺寸模式：不同供应商可接受的 size 档位不同，需按供应商选择映射 */
+export const AI_SIZE_MODE_OPTIONS: { value: string; label: string }[] = [
+  { value: 'zhipu', label: '智谱档位' },
+  { value: 'openai', label: 'OpenAI 标准' },
+  { value: '1024', label: '统一 1024' },
+]

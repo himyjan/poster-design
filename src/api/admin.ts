@@ -141,18 +141,20 @@ export const updateFont = (data: TFontForm & { id: number }) => fetch(API.update
 
 export const deleteFont = (id: number) => fetch(API.deleteFont, { id }, 'post')
 
-/** 后台 AI 配置 */
+/** 后台 AI 配置：兼容任意 OpenAI 格式端点 */
 export type TAiSettings = {
-  zhipu_api_key: string
+  api_key: string
   has_key: boolean
   text_model: string
   image_model: string
+  base_url: string
+  image_size_mode: 'zhipu' | 'openai' | '1024'
   enabled: boolean
 }
 
 export const getAiSettings = () => fetch<TAiSettings>(API.aiSettings, {})
 
-export const updateAiSettings = (data: { zhipu_api_key?: string; text_model?: string; image_model?: string; enabled?: boolean }) =>
+export const updateAiSettings = (data: { api_key?: string; text_model?: string; image_model?: string; base_url?: string; image_size_mode?: string; enabled?: boolean }) =>
   fetch(API.aiSettings, data, 'post')
 
 export const testAiConnection = () => fetch<{ content: string }>(API.aiTest, {}, 'post')
